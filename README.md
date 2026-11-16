@@ -15,3 +15,6 @@ Sem as chaves, o app funciona sem login e salva só no aparelho.
 ## Moderação
 
 Posts, comentários e temas denunciados por 3 pessoas diferentes ficam ocultos. Para revisar, veja o fim de `supabase/02-comunidade.sql`.
+
+---
+© 2026 Cristiane Queiroz. Todos os direitos reservados.
