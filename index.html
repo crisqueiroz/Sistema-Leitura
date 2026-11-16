@@ -199,7 +199,7 @@ function saveAllCloud(id) { id = id || atual; save(kP(id)); Object.keys(PF(id).l
 /* ---------- conta (Supabase) ---------- */
 // Preencha com o Project URL e a chave "anon public" do seu projeto Supabase (Project Settings > API).
 // Enquanto estiverem vazias, o app funciona sem login, salvando só neste aparelho.
-const SB_URL = "", SB_KEY = "";
+const SB_URL = "https://iecehbwjqjzplkdzkhbn.supabase.co", SB_KEY = "";
 const CLOUD = !!(SB_URL && SB_KEY && window.supabase);
 let sb = null, session = null, authReady = !CLOUD, loaded = !CLOUD, recovery = false, started = false;
 let authMode = "entrar", authMsg = "", authEmail = "";
