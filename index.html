@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Meu Sistema de Leitura</title>
+<title>Segundo Cérebro · Aprenda lendo</title>
 <style>
 :root{--bg:#faf6ef;--card:#fff;--ink:#2b2622;--mute:#7a6f64;--line:#e8dfd2;--acc:#b4532a;--acc2:#f3e3d6;--ok:#3d7a4f;--ok2:#e0f0e4;--r:16px}
 @media (prefers-color-scheme:dark){:root{--bg:#1d1a17;--card:#27231f;--ink:#f1ebe3;--mute:#a79c90;--line:#3a342d;--acc:#e58a5c;--acc2:#3a2a20;--ok:#7cc38f;--ok2:#1f3326}}
@@ -229,7 +229,7 @@ function go(v) { if (location.hash.slice(1) === v) { openId = null; render(); } 
 function escolher() {
   const g = h("div", { class: "who" });
   Object.entries(PEOPLE).forEach(([id, p]) => g.append(h("button", { onclick: () => { atual = id; PF(id); try { localStorage.setItem(LSA, id); } catch (e) {} openId = null; render(); } }, h("b", {}, p.e), p.n)));
-  return h("div", {}, h("h1", {}, "Quem vai ler agora?"), h("p", { class: "sub" }, "Cada pessoa tem seus próprios livros, metas e dias seguidos."), g);
+  return h("div", {}, h("h1", { style: "font-size:28px" }, "🧠 Segundo Cérebro"), h("p", { class: "sub", style: "font-size:16px;margin-bottom:22px" }, "Aprenda lendo"), h("h2", {}, "Quem vai ler agora?"), h("p", { class: "sub" }, "Cada pessoa tem seus próprios livros, metas e dias seguidos."), g);
 }
 function topbar() {
   const p = PEOPLE[atual];
@@ -546,7 +546,7 @@ function drawCard() {
   const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#d0703a"); g.addColorStop(1, "#7d3314"); x.fillStyle = g; x.fillRect(0, 0, W, H);
   const F = '-apple-system,"Segoe UI",Roboto,"Apple Color Emoji","Noto Color Emoji",sans-serif', books = Object.values(L());
   x.textAlign = "center"; x.fillStyle = "#fff"; let y = story ? 200 : 130;
-  x.globalAlpha = .85; x.font = "bold 40px " + F; x.fillText("MEU SISTEMA DE LEITURA", W / 2, y); x.globalAlpha = 1;
+  x.globalAlpha = .85; x.font = "bold 40px " + F; x.fillText("SEGUNDO CÉREBRO", W / 2, y); x.globalAlpha = 1;
   y += story ? 230 : 190; x.font = "200px " + F; x.fillText("🔥", W / 2, y);
   y += story ? 300 : 260; x.font = "bold " + (story ? 300 : 260) + "px " + F; x.fillText(String(st), W / 2, y);
   y += 90; x.font = "bold 68px " + F; x.fillText(st === 1 ? "dia seguido lendo" : "dias seguidos lendo", W / 2, y);
@@ -562,7 +562,7 @@ function drawCard() {
   };
   if (s.lendo) sec("📖 Lendo agora", books.filter(b => b.status === "lendo"));
   if (s.lidos) sec("✅ Já li", books.filter(b => b.status === "lido").sort((a, b) => (b.fim || "").localeCompare(a.fim || "")));
-  x.globalAlpha = .75; x.font = "38px " + F; x.fillText("Ler um pouco todo dia muda tudo", W / 2, H - 80); x.globalAlpha = 1;
+  x.globalAlpha = .75; x.font = "38px " + F; x.fillText("Aprenda lendo", W / 2, H - 80); x.globalAlpha = 1;
   return c;
 }
 async function cardBlob(cv) { return new Promise(r => cv.toBlob(r, "image/png")); }
@@ -573,7 +573,7 @@ async function downloadCard(cv) {
 async function shareCard(cv) {
   const blob = await cardBlob(cv), f = new File([blob], "ofensiva-de-leitura.png", { type: "image/png" });
   if (navigator.canShare && navigator.canShare({ files: [f] })) {
-    try { await navigator.share({ files: [f], title: "Meu Sistema de Leitura" }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+    try { await navigator.share({ files: [f], title: "Segundo Cérebro · Aprenda lendo" }); return; } catch (e) { if (e && e.name === "AbortError") return; }
   }
   await downloadCard(cv); toast("Imagem baixada. Agora é só postar no Instagram.");
 }
