@@ -67,6 +67,7 @@ label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
 <body>
 <div id="app"></div>
 <nav class="nav" id="nav"></nav>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 /* ---------- util ---------- */
@@ -92,13 +93,14 @@ let toastT;
 function toast(m) { document.querySelectorAll(".toast").forEach(e => e.remove()); const t = h("div", { class: "toast" }, m); document.body.append(t); clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 2600); }
 
 /* ---------- pessoas, estado e armazenamento ---------- */
-const PEOPLE = {
+let PEOPLE = {};
+const LEGACY = {
   cris: { n: "Cris", e: "👩", f: "adulto" }, deyvid: { n: "Deyvid", e: "👨", f: "adulto" },
   laura: { n: "Laura", e: "🧑", f: "teen" }, alice: { n: "Alice", e: "👧", f: "kid" }
 };
 const DEF_MIN = { adulto: 10, teen: 15, kid: 10 };
 let S = { pf: {} }, atual = null;
-let db = null, uid = null, assets = null, mode = "local", loadedOnce = false;
+let uid = null, assets = null, mode = "local", savedAtual = null, localSnap = null;
 const LS = "sistema_leitura_v2", LSA = "sistema_leitura_atual";
 const timers = {}, chain = {};
 function PF(id) { id = id || atual; return S.pf[id] || (S.pf[id] = { perfil: {}, livros: {} }); }
@@ -109,8 +111,12 @@ function lsLoad() {
     const x = JSON.parse(localStorage.getItem(LS) || "null");
     if (x && x.pf) S = x;
     else { const o = JSON.parse(localStorage.getItem("sistema_leitura_v1") || "null"); if (o && o.livros) S = { pf: { cris: { perfil: o.perfil || {}, livros: o.livros } } }; }
-    const a = localStorage.getItem(LSA); atual = PEOPLE[a] ? a : null;
+    savedAtual = localStorage.getItem(LSA);
   } catch (e) {}
+}
+function loadPeople() {
+  PEOPLE = S.people ? clone(S.people) : {};
+  if (!S.people) Object.keys(S.pf).forEach(id => { if (LEGACY[id]) PEOPLE[id] = { ...LEGACY[id] }; });
 }
 function lsSave() { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { toast("Armazenamento cheio neste aparelho"); } }
 function save(key) {
@@ -120,50 +126,125 @@ function save(key) {
 }
 const savePf = () => save(kP());
 const saveBook = b => save(kB(b));
-function dataFor(key) { const p = key.split("_"); return p[0] === "perfil" ? PF(p[1]).perfil : PF(p[1]).livros[p.slice(2).join("_")]; }
+function persistPeople() { if (mode === "cloud") save("pessoas"); else { S.people = PEOPLE; lsSave(); } }
+function dataFor(key) { if (key === "pessoas") return { list: PEOPLE }; const p = key.split("_"); return p[0] === "perfil" ? PF(p[1]).perfil : PF(p[1]).livros[p.slice(2).join("_")]; }
 async function write(key) {
   const data = dataFor(key);
   if (!data) return;
-  try { await db.collection("data/users/" + uid).doc(key).set(clone(data)); }
+  try { const { error } = await sb.from("dados").upsert({ user_id: uid, key, data: clone(data) }); if (error) throw error; }
   catch (e) { toast("Não consegui salvar na conta. Tente de novo."); }
 }
-async function removeDoc(key) { try { await db.collection("data/users/" + uid).doc(key).delete(); } catch (e) { toast("Não consegui excluir na conta."); } }
+async function removeDoc(key) { try { const { error } = await sb.from("dados").delete().eq("key", key); if (error) throw error; } catch (e) { toast("Não consegui excluir na conta."); } }
 function saveAllCloud(id) { id = id || atual; save(kP(id)); Object.keys(PF(id).livros).forEach(i => save("livro_" + id + "_" + i)); }
 
-function subscribe() {
-  const localS = S, hadLocal = Object.values(S.pf).some(x => Object.keys(x.livros).length || Object.keys(x.perfil).length);
-  const t = setTimeout(() => { if (!loadedOnce) toast("Sem resposta da conta. Mostrando dados deste aparelho."); }, 10000);
-  db.collection("data/users/" + uid).onSnapshot(snap => {
-    clearTimeout(t);
-    if (!loadedOnce && snap.empty && hadLocal) { S = localS; mode = "cloud"; loadedOnce = true; Object.keys(S.pf).forEach(saveAllCloud); soft(); return; }
-    if (!loadedOnce) S = { pf: {} };
-    const legacy = { perfil: null, livros: {} };
-    snap.docs.forEach(d => {
-      if (timers[d.id]) return;
-      const v = clone(d.data()), p = d.id.split("_");
-      if (p[0] === "perfil") { if (p.length === 1) legacy.perfil = v; else if (PEOPLE[p[1]]) PF(p[1]).perfil = v; }
-      else if (p[0] === "livro") { if (p.length === 2) legacy.livros[p[1]] = v; else if (PEOPLE[p[1]]) PF(p[1]).livros[p.slice(2).join("_")] = v; }
-    });
-    snap.docChanges().forEach(c => { if (c.type === "removed") { const p = c.doc.id.split("_"); if (p[0] === "livro" && p.length >= 3 && S.pf[p[1]]) delete S.pf[p[1]].livros[p.slice(2).join("_")]; } });
-    if (legacy.perfil || Object.keys(legacy.livros).length) { // dados da versão anterior passam para a Cris
-      if (legacy.perfil) { PF("cris").perfil = Object.assign({}, legacy.perfil, PF("cris").perfil); removeDoc("perfil"); }
-      Object.entries(legacy.livros).forEach(([i, b]) => { PF("cris").livros[i] = b; removeDoc("livro_" + i); });
-      saveAllCloud("cris");
-    }
-    loadedOnce = true; mode = "cloud"; soft();
-  }, () => { mode = "local"; toast("Sincronização indisponível. Usando este aparelho."); soft(); });
+/* ---------- conta (Supabase) ---------- */
+// Preencha com o Project URL e a chave "anon public" do seu projeto Supabase (Project Settings > API).
+// Enquanto estiverem vazias, o app funciona sem login, salvando só neste aparelho.
+const SB_URL = "", SB_KEY = "";
+const CLOUD = !!(SB_URL && SB_KEY && window.supabase);
+let sb = null, session = null, authReady = !CLOUD, loaded = !CLOUD, recovery = false, started = false;
+let authMode = "entrar", authMsg = "", authEmail = "";
+const hasData = () => Object.values(S.pf).some(x => Object.keys(x.livros).length || Object.keys(x.perfil).length);
+function erroAuth(e) {
+  const m = String((e && e.message) || "").toLowerCase();
+  if (m.includes("invalid login")) return "E-mail ou senha incorretos.";
+  if (m.includes("not confirmed")) return "Confirme seu e-mail pelo link que enviamos.";
+  if (m.includes("already registered")) return "Esse e-mail já tem conta. Use Entrar.";
+  if (m.includes("senha curta") || m.includes("password should")) return "A senha precisa ter pelo menos 6 caracteres.";
+  if (m.includes("rate limit") || m.includes("too many")) return "Muitas tentativas. Espere um pouco e tente de novo.";
+  if (m.includes("valid email") || m.includes("invalid email")) return "Esse e-mail não parece válido.";
+  return "Não deu certo. Tente de novo.";
 }
+function brand() { return [h("h1", { style: "font-size:28px" }, "🧠 Segundo Cérebro"), h("p", { class: "sub", style: "font-size:16px;margin-bottom:22px" }, "Aprenda lendo")]; }
+function authView() {
+  const em = h("input", { type: "email", placeholder: "seu e-mail", autocomplete: "email", value: authEmail });
+  const pw = h("input", { type: "password", placeholder: "senha (mínimo 6 caracteres)", autocomplete: authMode === "criar" ? "new-password" : "current-password" });
+  const titulo = { entrar: "Entrar", criar: "Criar conta", esqueci: "Enviar link de recuperação" }[authMode];
+  const go = async () => {
+    authEmail = em.value.trim(); authMsg = "";
+    if (!authEmail) { authMsg = "Digite seu e-mail."; return render(); }
+    btn.disabled = true;
+    try {
+      if (authMode === "esqueci") {
+        const { error } = await sb.auth.resetPasswordForEmail(authEmail, { redirectTo: location.origin + location.pathname }); if (error) throw error;
+        authMsg = "Se esse e-mail tiver conta, enviamos um link para criar uma nova senha.";
+      } else {
+        if (pw.value.length < 6) throw { message: "senha curta" };
+        if (authMode === "criar") {
+          const { data, error } = await sb.auth.signUp({ email: authEmail, password: pw.value, options: { emailRedirectTo: location.origin + location.pathname } }); if (error) throw error;
+          if (!data.session) { authMsg = "Quase lá! Enviamos um e-mail de confirmação. Abra o link e depois entre aqui."; authMode = "entrar"; }
+        } else { const { error } = await sb.auth.signInWithPassword({ email: authEmail, password: pw.value }); if (error) throw error; }
+      }
+    } catch (e) { authMsg = erroAuth(e); }
+    render();
+  };
+  const btn = h("button", { class: "pri", style: "width:100%;margin-top:14px", onclick: go }, titulo);
+  pw.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  const troca = (m, t) => h("button", { class: "ghost sm", onclick: () => { authEmail = em.value.trim(); authMode = m; authMsg = ""; render(); } }, t);
+  return h("div", {}, brand(), h("div", { class: "card" }, h("h2", {}, authMode === "criar" ? "Criar conta" : authMode === "esqueci" ? "Recuperar senha" : "Entrar"),
+    h("label", {}, "E-mail"), em, authMode === "esqueci" ? null : [h("label", {}, "Senha"), pw], btn,
+    authMsg ? h("p", { class: "sub", style: "margin:12px 0 0;color:var(--ink)" }, authMsg) : null,
+    h("div", { class: "row wrap", style: "margin-top:10px" }, authMode !== "entrar" ? troca("entrar", "Já tenho conta") : null, authMode !== "criar" ? troca("criar", "Criar conta") : null, authMode === "entrar" ? troca("esqueci", "Esqueci a senha") : null)),
+    h("p", { class: "sync" }, "Seus livros e anotações ficam salvos na sua conta e só você os vê. Se criar perfis de crianças, o adulto da conta é o responsável por eles."));
+}
+function novaSenhaView() {
+  const pw = h("input", { type: "password", placeholder: "nova senha (mínimo 6 caracteres)", autocomplete: "new-password" });
+  return h("div", {}, brand(), h("div", { class: "card" }, h("h2", {}, "Criar nova senha"), pw,
+    h("button", { class: "pri", style: "width:100%;margin-top:14px", onclick: async () => {
+      if (pw.value.length < 6) return toast("A senha precisa ter pelo menos 6 caracteres.");
+      const { error } = await sb.auth.updateUser({ password: pw.value });
+      if (error) return toast(erroAuth(error));
+      recovery = false; toast("Senha atualizada"); if (!started) startCloud(); render();
+    } }, "Salvar nova senha")));
+}
+function gateView() {
+  if (!CLOUD) return null;
+  if (!authReady) return h("div", { class: "empty" }, "Carregando…");
+  if (recovery) return novaSenhaView();
+  if (!session) return authView();
+  if (!loaded) return h("div", { class: "empty" }, "Carregando seus dados…");
+  return null;
+}
+async function loadCloud(first) {
+  const { data, error } = await sb.from("dados").select("key,data");
+  if (error) { toast("Não consegui carregar sua conta."); return; }
+  if (first && !data.length && localSnap && confirm("Encontrei dados de leitura salvos neste aparelho. Quer enviá-los para a sua conta?")) {
+    S = localSnap.S; PEOPLE = localSnap.P; delete S.people;
+    const keys = ["pessoas"]; Object.entries(S.pf).forEach(([id, x]) => { keys.push("perfil_" + id); Object.keys(x.livros).forEach(b => keys.push("livro_" + id + "_" + b)); });
+    await Promise.all(keys.map(write)); try { localStorage.removeItem(LS); } catch (e) {} localSnap = null;
+  } else {
+    let ppl = {}; data.forEach(r => { if (r.key === "pessoas") ppl = (r.data && r.data.list) || {}; });
+    S = { pf: {} }; PEOPLE = ppl;
+    data.forEach(r => { const q = r.key.split("_"); if (!PEOPLE[q[1]]) return; if (q[0] === "perfil") PF(q[1]).perfil = r.data; else if (q[0] === "livro") PF(q[1]).livros[q.slice(2).join("_")] = r.data; });
+  }
+  if (first && !atual && PEOPLE[savedAtual]) atual = savedAtual;
+  if (atual && !PEOPLE[atual]) atual = null;
+}
+async function startCloud() {
+  if (started || !session) return;
+  started = true; uid = session.user.id; mode = "cloud"; loaded = false; render();
+  await loadCloud(true); loaded = true; render();
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || mode !== "cloud" || !loaded || Object.keys(timers).length || tEnd) return;
+  loadCloud(false).then(soft);
+});
 
 async function init() {
-  lsLoad(); route();
-  try {
-    if (window.claude && claude.use) {
-      const [d, u, a] = await Promise.all([claude.use("db"), claude.use("user"), claude.use("assets")]);
-      assets = a;
-      if (d && u) { const id = await u.id(); if (id) { db = d; uid = id; subscribe(); } }
-    }
-  } catch (e) {}
-  soft();
+  lsLoad(); loadPeople(); atual = PEOPLE[savedAtual] ? savedAtual : null;
+  if (CLOUD) {
+    localSnap = hasData() ? { S: clone(S), P: clone(PEOPLE) } : null;
+    S = { pf: {} }; PEOPLE = {}; atual = null;
+    sb = window.supabase.createClient(SB_URL, SB_KEY);
+    sb.auth.onAuthStateChange((ev, sess) => {
+      session = sess; authReady = true;
+      if (ev === "PASSWORD_RECOVERY") recovery = true;
+      if (ev === "SIGNED_OUT") { started = false; loaded = false; mode = "local"; S = { pf: {} }; PEOPLE = {}; atual = null; recovery = false; try { localStorage.removeItem(LSA); } catch (e) {} }
+      if (sess && !recovery && !started) setTimeout(startCloud, 0);
+      render();
+    });
+  }
+  route();
 }
 
 
@@ -226,10 +307,32 @@ function route() {
 }
 window.addEventListener("hashchange", route);
 function go(v) { if (location.hash.slice(1) === v) { openId = null; render(); } else location.hash = v; }
+const EMOJIS = ["👩", "👨", "🧑", "👧", "👦", "👵", "👴", "🦊", "🐼", "📚"];
+const FAIXAS = { kid: "Criança (até 11 anos)", teen: "Adolescente (12 a 17)", adulto: "Adulto" };
+function novoPerfil(aberto) {
+  let emo = EMOJIS[0];
+  const nome = h("input", { placeholder: "Nome (ex.: Ana)", maxlength: 20 });
+  const fx = h("select", {}, Object.entries(FAIXAS).map(([k, v]) => h("option", { value: k, selected: k === "adulto" ? true : false }, v)));
+  const chips = h("div", {}); const draw = () => chips.replaceChildren(...EMOJIS.map(e => h("span", { class: "chip btn" + (e === emo ? " sel" : ""), style: "font-size:20px", onclick: () => { emo = e; draw(); } }, e))); draw();
+  const criar = () => {
+    const n = nome.value.trim(); if (!n) return toast("Digite um nome");
+    const id = uid36(); PEOPLE[id] = { n, e: emo, f: fx.value }; PF(id); persistPeople(); atual = id;
+    try { localStorage.setItem(LSA, id); } catch (e) {} openId = null; render();
+  };
+  return h("details", { class: "card", open: aberto ? true : false }, h("summary", { style: "cursor:pointer;font-weight:600" }, "➕ Novo perfil"),
+    h("label", {}, "Nome"), nome, h("label", {}, "Figurinha"), chips, h("label", {}, "Faixa de idade (adapta a linguagem e o tempo de leitura)"), fx,
+    h("button", { class: "pri", style: "width:100%;margin-top:12px", onclick: criar }, "Criar perfil"));
+}
 function escolher() {
-  const g = h("div", { class: "who" });
-  Object.entries(PEOPLE).forEach(([id, p]) => g.append(h("button", { onclick: () => { atual = id; PF(id); try { localStorage.setItem(LSA, id); } catch (e) {} openId = null; render(); } }, h("b", {}, p.e), p.n)));
-  return h("div", {}, h("h1", { style: "font-size:28px" }, "🧠 Segundo Cérebro"), h("p", { class: "sub", style: "font-size:16px;margin-bottom:22px" }, "Aprenda lendo"), h("h2", {}, "Quem vai ler agora?"), h("p", { class: "sub" }, "Cada pessoa tem seus próprios livros, metas e dias seguidos."), g);
+  const ids = Object.keys(PEOPLE), box = h("div", {}, brand());
+  if (ids.length) {
+    const g = h("div", { class: "who" });
+    ids.forEach(id => { const p = PEOPLE[id]; g.append(h("button", { onclick: () => { atual = id; PF(id); try { localStorage.setItem(LSA, id); } catch (e) {} openId = null; render(); } }, h("b", {}, p.e), p.n)); });
+    box.append(h("h2", {}, "Quem vai ler agora?"), g, h("div", { style: "height:12px" }));
+  } else box.append(h("h2", {}, "Vamos começar"), h("p", { class: "sub" }, "Crie o perfil de quem vai ler. Depois você pode adicionar outras pessoas, como filhos e familiares."));
+  box.append(novoPerfil(!ids.length));
+  if (CLOUD && session) box.append(h("button", { class: "ghost sm", style: "margin-top:12px", onclick: () => sb.auth.signOut() }, "Sair da conta (" + session.user.email + ")"));
+  return box;
 }
 function topbar() {
   const p = PEOPLE[atual];
@@ -240,6 +343,7 @@ function soft() { const a = document.activeElement; if (a && /INPUT|TEXTAREA|SEL
 function render() {
   const nav = $("#nav"); nav.replaceChildren(...TABS.map(([k, i, l]) => h("button", { class: view === k && !openId ? "on" : "", onclick: () => go(k) }, h("b", {}, i), l)));
   const app = $("#app"); app.replaceChildren();
+  const gate = gateView(); if (gate) { nav.replaceChildren(); app.append(gate); return; }
   if (!atual) { nav.replaceChildren(); app.append(escolher()); return; }
   app.append(topbar());
   if (openId && L()[openId]) app.append(ficha(L()[openId]));
@@ -614,7 +718,30 @@ function meta() {
       h("button", { onclick: exp }, "Gerar backup"),
       h("button", { onclick: async () => { if (!ta.value) exp(); try { await navigator.clipboard.writeText(ta.value); toast("Copiado"); } catch (e) { ta.select(); toast("Copie manualmente"); } } }, "Copiar"),
       h("button", { onclick: () => { try { const x = JSON.parse(ta.value); if (!x.livros) throw 0; Object.assign(P(), x.perfil || {}); Object.entries(x.livros).forEach(([i, b]) => { L()[i] = b; }); if (mode === "cloud") saveAllCloud(); else lsSave(); toast("Backup importado"); render(); } catch (e) { toast("Backup inválido"); } } }, "Importar"))));
+  const extra = h("div", { class: "card" }, h("h3", {}, "Conta e perfil"));
+  if (CLOUD && session) extra.append(h("div", { class: "sync" }, "Conta: " + session.user.email),
+    h("div", { class: "row wrap", style: "margin:8px 0" }, h("button", { onclick: () => sb.auth.signOut() }, "Sair da conta"), armBtn("Apagar todos os meus dados", apagarTudo)));
+  extra.append(armBtn("Excluir este perfil e seus livros", excluirPerfil));
+  box.append(extra);
   return box;
+}
+function armBtn(label, fn) {
+  let armed = false;
+  const b = h("button", { class: "danger", onclick: async () => { if (!armed) { armed = true; b.textContent = "Toque de novo para confirmar"; setTimeout(() => { armed = false; b.textContent = label; }, 4000); return; } await fn(); } }, label);
+  return b;
+}
+async function excluirPerfil() {
+  const id = atual, keys = ["perfil_" + id, ...Object.keys(L()).map(i => "livro_" + id + "_" + i)];
+  keys.forEach(k => { clearTimeout(timers[k]); delete timers[k]; });
+  if (mode === "cloud") await Promise.all(keys.map(removeDoc));
+  delete S.pf[id]; delete PEOPLE[id]; persistPeople(); atual = null;
+  try { localStorage.removeItem(LSA); } catch (e) {} render(); toast("Perfil excluído");
+}
+async function apagarTudo() {
+  const { error } = await sb.from("dados").delete().eq("user_id", uid);
+  if (error) return toast("Não consegui apagar.");
+  Object.keys(timers).forEach(k => { clearTimeout(timers[k]); delete timers[k]; });
+  S = { pf: {} }; PEOPLE = {}; atual = null; render(); toast("Seus dados foram apagados");
 }
 init();
 </script>
