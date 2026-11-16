@@ -54,6 +54,14 @@ label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
 .ajuda summary{cursor:pointer;font-weight:600;color:var(--acc)}.ajuda p{margin:8px 0}
 .ajuda .ex{background:var(--card);border-radius:10px;padding:8px 10px}
 .who{display:grid;grid-template-columns:1fr 1fr;gap:12px}.who button{padding:22px 8px;font-size:18px;border-radius:var(--r)}.who b{display:block;font-size:40px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.tile b{display:block;font-size:24px;line-height:1.15}.tile span{font-size:13px;color:var(--mute)}
+.chart{display:flex;gap:6px;align-items:flex-end;height:96px;margin:8px 0 4px}
+.chart div{flex:1;text-align:center;font-size:11px;color:var(--mute);display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.chart i{display:block;background:var(--acc);border-radius:6px 6px 0 0;min-height:2px;margin-bottom:2px}
+.insight{border-left:3px solid var(--ok);padding:4px 0 4px 10px;margin:8px 0;font-size:15px}
+.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:flex-start;justify-content:center;z-index:10;overflow:auto;padding:16px}
 </style>
 </head>
 <body>
@@ -209,7 +217,7 @@ function helpBox(k) {
 }
 
 /* ---------- navegação ---------- */
-const TABS = [["hoje", "☀️", "Hoje"], ["livros", "📚", "Livros"], ["meta", "🎯", "Meta"]];
+const TABS = [["hoje", "☀️", "Hoje"], ["livros", "📚", "Livros"], ["metricas", "📊", "Métricas"], ["meta", "🎯", "Meta"]];
 let view = "hoje", openId = null, q = "", filtro = "todos";
 function route() {
   const hsh = location.hash.slice(1);
@@ -237,6 +245,7 @@ function render() {
   if (openId && L()[openId]) app.append(ficha(L()[openId]));
   else if (view === "hoje") app.append(hoje());
   else if (view === "livros") app.append(livros());
+  else if (view === "metricas") app.append(metricas());
   else app.append(meta());
 }
 
@@ -246,7 +255,21 @@ function habit() { return P().habit || (P().habit = {}); }
 function goals() { return P().goal || (P().goal = {}); }
 function dayDone(k) { return (habit()[k] || 0) >= (goals()[k] || minDia()); }
 function streak() { let n = 0, i = dayDone(today()) ? 0 : -1; while (dayDone(dayOffset(i))) { n++; i--; } return n; }
-function logMinutes(m) { if (!goals()[today()]) goals()[today()] = minDia(); habit()[today()] = (habit()[today()] || 0) + m; savePf(); }
+function sessaoId() { const l = Object.values(L()).filter(b => b.status === "lendo"), id = P().livroSessao; return l.some(b => b.id === id) ? id : (l[0] && l[0].id); }
+function sessaoSel() {
+  const l = Object.values(L()).filter(b => b.status === "lendo"); if (!l.length) return null;
+  const cur = sessaoId();
+  return h("div", { style: "margin-bottom:8px" }, h("label", { style: "margin-top:0" }, "Livro desta leitura"),
+    h("select", { onchange: e => { P().livroSessao = e.target.value; savePf(); } }, l.map(b => h("option", { value: b.id, selected: b.id === cur ? true : false }, b.title || "Sem título"))));
+}
+function logMinutes(m) {
+  if (!goals()[today()]) goals()[today()] = minDia(); habit()[today()] = (habit()[today()] || 0) + m; savePf();
+  const b = L()[sessaoId()]; if (b) { b.min = (b.min || 0) + m; b.log = b.log || {}; b.log[today()] = (b.log[today()] || 0) + m; touch(b); }
+}
+function undoToday() {
+  delete habit()[today()]; delete goals()[today()]; savePf();
+  Object.values(L()).forEach(b => { const t = b.log && b.log[today()]; if (t) { b.min = Math.max(0, (b.min || 0) - t); delete b.log[today()]; touch(b); } });
+}
 function setMin(n) { if (tEnd) return; P().minDia = n; if (!(habit()[today()] > 0)) delete goals()[today()]; savePf(); render(); }
 let tEnd = null, tInt = null;
 function startTimer() {
@@ -276,16 +299,22 @@ function hoje() {
   const box = h("div", {});
   const st = streak(), done = dayDone(today());
   box.append(h("h1", {}, "Hoje"), h("p", { class: "sub" }, st ? `${st} dia${st > 1 ? "s" : ""} seguido${st > 1 ? "s" : ""}. Continue assim.` : "Comece com " + minDia() + " minutos."));
+  if (st >= 1) {
+    const prox = SHARE_MARCOS.find(m => m > st);
+    box.append(h("div", { class: "card row wrap" },
+      h("div", { class: "grow" }, SHARE_MARCOS.includes(st) ? h("b", {}, "🎉 Marco de " + st + " dias! Compartilhe sua conquista.") : h("span", { class: "sub", style: "margin:0" }, prox ? "Faltam " + (prox - st) + " dia(s) para o marco de " + prox + " dias." : "Você passou de todos os marcos. Parabéns!")),
+      h("button", { class: SHARE_MARCOS.includes(st) ? "pri" : "", onclick: cardModal }, "📸 Cartão para o Instagram")));
+  }
   // semana
   const dots = h("div", { class: "dots" });
   for (let i = -6; i <= 0; i++) { const k = dayOffset(i), d = new Date(k + "T12:00:00"); dots.append(h("span", { class: (dayDone(k) ? "d " : "") + (i === 0 ? "t" : "") }, h("em", {}), "DSTQQSS"[d.getDay()])); }
   // timer
-  const timerCard = h("div", { class: "card" }, h("h2", {}, "Ritual de " + minDia() + " minutos"), helpBox("ritual"), tempoChips(), dots,
+  const timerCard = h("div", { class: "card" }, h("h2", {}, "Ritual de " + minDia() + " minutos"), helpBox("ritual"), tempoChips(), sessaoSel(), dots,
     h("div", { class: "big", id: "clock" }, tEnd ? fmt(Math.max(0, tEnd - Date.now())) : done ? "✓ feito" : fmt(minDia() * 60000)),
     h("div", { class: "row" },
       tEnd ? h("button", { class: "grow", onclick: stopTimer }, "Cancelar") : h("button", { class: "pri grow", onclick: startTimer }, done ? "Ler mais" : "Começar a ler"),
       !tEnd && !done ? h("button", { onclick: () => { logMinutes(minDia()); render(); } }, "Já li hoje") : null),
-    !tEnd && (habit()[today()] || 0) > 0 ? h("button", { class: "ghost sm", style: "margin-top:8px", onclick: () => { delete habit()[today()]; delete goals()[today()]; savePf(); toast("Hoje foi desfeito"); render(); } }, "↩ Desfazer hoje") : null);
+    !tEnd && (habit()[today()] || 0) > 0 ? h("button", { class: "ghost sm", style: "margin-top:8px", onclick: () => { undoToday(); toast("Hoje foi desfeito"); render(); } }, "↩ Desfazer hoje") : null);
   // atenção
   const c = P().check && P().check.d === today() ? P().check : (P().check = { d: today(), on: [] });
   const att = h("div", { class: "card" }, h("h3", {}, "Antes de abrir o livro"), helpBox("atencao"));
@@ -372,6 +401,7 @@ function ficha(b) {
     h("label", {}, "Situação"),
     h("select", { onchange: e => { b.status = e.target.value; if (b.status === "lido" && !b.fim) b.fim = today(); touch(b); render(); } }, Object.entries(STATUS).map(([k, v]) => h("option", { value: k, selected: b.status === k ? true : false }, v))),
     h("div", { class: "bar", style: "margin-top:12px" }, updBar), h("div", { class: "sub", style: "margin:4px 0 0" }, "Passos concluídos pelos 5 Cs")));
+  box.append(bookStats(b));
 
   // 1 Captar
   const photos = h("div", { class: "photos" }, (b.photos || []).map((p, i) => h("img", { src: pUrl(p), alt: "foto " + (i + 1), onclick: () => lightbox(b, i) })));
@@ -425,6 +455,141 @@ function lightbox(b, i) {
   const o = h("div", { class: "lb", onclick: () => o.remove() }, h("img", { src: pUrl(b.photos[i]), alt: "" }));
   const rm = h("button", { class: "danger", style: "position:absolute;bottom:24px", onclick: e => { e.stopPropagation(); b.photos.splice(i, 1); touch(b); o.remove(); render(); } }, "Remover foto");
   o.append(rm); document.body.append(o);
+}
+
+/* ---------- métricas ---------- */
+const DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+const dBetween = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 864e5);
+const fmtMin = m => m >= 60 ? Math.floor(m / 60) + "h" + (m % 60 ? String(m % 60).padStart(2, "0") : "") : m + " min";
+const plural = (n, a, b) => n + " " + (n === 1 ? a : b);
+function bestStreak() {
+  const ks = Object.keys(habit()).filter(dayDone).sort(); let best = 0, cur = 0, prev = null;
+  ks.forEach(k => { cur = prev && dBetween(prev, k) === 1 ? cur + 1 : 1; best = Math.max(best, cur); prev = k; });
+  return best;
+}
+function stats() {
+  const hb = habit(), books = Object.values(L());
+  const min = Object.values(hb).reduce((a, b) => a + b, 0), dias = Object.keys(hb).filter(k => hb[k] > 0).length;
+  let d30 = 0, m30 = 0; for (let i = -29; i <= 0; i++) { const k = dayOffset(i); if (dayDone(k)) d30++; m30 += hb[k] || 0; }
+  const sem = []; for (let w = 7; w >= 0; w--) { let s = 0; for (let i = 0; i < 7; i++) s += hb[dayOffset(-(w * 7 + i))] || 0; sem.push(s); }
+  const wd = Array(7).fill(0); Object.keys(hb).forEach(k => { wd[new Date(k + "T12:00:00").getDay()] += hb[k]; });
+  const lidos = books.filter(b => b.status === "lido"), mes = today().slice(0, 7), ano = today().slice(0, 4);
+  const tempos = lidos.map(b => b.created && b.fim ? dBetween(b.created, b.fim) : -1).filter(n => n >= 0);
+  const notas = lidos.map(b => b.nota).filter(Boolean), tags = {};
+  books.forEach(b => (b.cats || []).forEach(c => { tags[c] = (tags[c] || 0) + 1; }));
+  const maisLido = books.filter(b => b.min).sort((a, b) => b.min - a.min)[0];
+  return {
+    min, dias, d30, m30, sem, wd, best: bestStreak(), books, lidos,
+    nLendo: books.filter(b => b.status === "lendo").length, nQuero: books.filter(b => b.status === "quero").length,
+    lidosMes: lidos.filter(b => (b.fim || "").startsWith(mes)).length, lidosAno: lidos.filter(b => (b.fim || "").startsWith(ano)).length,
+    grifos: books.reduce((a, b) => a + (b.captar || []).length, 0), fotos: books.reduce((a, b) => a + (b.photos || []).length, 0),
+    acoes: books.filter(b => b.acao).length, feitas: books.filter(b => b.acao && b.feito).length,
+    mediaPassos: books.length ? books.reduce((a, b) => a + passos(b), 0) / books.length : 0,
+    diasTerminar: tempos.length ? Math.round(tempos.reduce((a, b) => a + b, 0) / tempos.length) : null,
+    notaMedia: notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null,
+    topTags: Object.entries(tags).sort((a, b) => b[1] - a[1]).slice(0, 5), maisLido
+  };
+}
+const tile = (v, l) => h("div", { class: "tile" }, h("b", {}, v), h("span", {}, l));
+function metricas() {
+  const s = stats(), box = h("div", {}, h("h1", {}, "Métricas"), h("p", { class: "sub" }, "Seus números de leitura, só de " + PEOPLE[atual].n + "."));
+  if (!s.books.length && !s.min) { box.append(h("div", { class: "empty" }, "Ainda não há dados. Leia hoje e adicione um livro para ver as métricas.")); return box; }
+  box.append(h("h3", {}, "Hábito"), h("div", { class: "grid2" },
+    tile(streak() + " 🔥", "dias seguidos agora"), tile(s.best, "melhor sequência"),
+    tile(fmtMin(s.min), "tempo total lido"), tile(s.dias, "dias com leitura"),
+    tile(s.d30 + "/30", "dias cumpridos (30 dias)"), tile(fmtMin(Math.round(s.m30 / 30)), "média por dia (30 dias)")));
+  const mx = Math.max(1, ...s.sem);
+  box.append(h("div", { class: "card" }, h("h3", {}, "Minutos por semana (últimas 8)"),
+    h("div", { class: "chart" }, s.sem.map((v, i) => h("div", {}, h("i", { style: "height:" + Math.round(v / mx * 70) + "px" }), i === 7 ? "agora" : "-" + (7 - i) + "s"))),
+    h("div", { class: "sub", style: "margin:0" }, "Esta semana: " + fmtMin(s.sem[7]) + (s.sem[6] ? " · semana passada: " + fmtMin(s.sem[6]) : ""))));
+  box.append(h("h3", {}, "Livros"), h("div", { class: "grid2" },
+    tile(s.lidos.length, "livros lidos"), tile(s.nLendo, "lendo agora"), tile(s.lidosMes, "lidos neste mês"), tile(s.lidosAno, "lidos neste ano"),
+    tile(s.nQuero, "na fila (quero ler)"), tile(s.notaMedia ? s.notaMedia.toFixed(1) + " ★" : "–", "nota média"),
+    tile(s.diasTerminar != null ? plural(s.diasTerminar, "dia", "dias") : "–", "para terminar um livro"), tile(Math.round(s.mediaPassos * 10) / 10 + " de 5", "passos dos 5 Cs por livro")));
+  box.append(h("h3", {}, "Aprendizado"), h("div", { class: "grid2" },
+    tile(s.grifos, "grifos e ideias captados"), tile(s.fotos, "fotos de páginas"),
+    tile(s.acoes, "ações definidas"), tile(s.feitas + "/" + s.acoes, "ações colocadas em prática")));
+  if (s.topTags.length) box.append(h("div", { class: "card" }, h("h3", {}, "Assuntos mais lidos"), s.topTags.map(([t, n]) => h("span", { class: "chip" }, t + " · " + n))));
+  // insights
+  const ins = [], wdMax = Math.max(...s.wd);
+  if (wdMax > 0) ins.push("Seu melhor dia para ler é " + DIAS[s.wd.indexOf(wdMax)] + ".");
+  if (s.d30) ins.push("Você cumpriu a meta em " + Math.round(s.d30 / 30 * 100) + "% dos últimos 30 dias.");
+  if (s.sem[7] > s.sem[6] && s.sem[6] > 0) ins.push("Esta semana você já leu mais do que na semana passada. 👏");
+  else if (s.sem[6] > s.sem[7] && s.sem[7] > 0) ins.push("Na semana passada você leu mais. Ainda dá tempo de alcançar.");
+  if (s.maisLido) ins.push("Livro em que você mais investiu tempo: " + (s.maisLido.title || "Sem título") + " (" + fmtMin(s.maisLido.min) + ").");
+  if (s.acoes && s.feitas < s.acoes) ins.push("Faltam " + (s.acoes - s.feitas) + " ação(ões) para colocar em prática. O aprendizado fixa quando vira ação.");
+  const semCapt = s.books.filter(b => b.status === "lendo" && !(b.captar || []).length && !(b.photos || []).length).length;
+  if (semCapt) ins.push(plural(semCapt, "livro em leitura ainda não tem", "livros em leitura ainda não têm") + " grifos nem fotos. Que tal captar uma ideia hoje?");
+  if (s.best >= 3 && streak() < s.best) ins.push("Sua melhor sequência foi de " + s.best + " dias. Dá para bater!");
+  if (ins.length) box.append(h("div", { class: "card" }, h("h3", {}, "Insights"), ins.map(t => h("div", { class: "insight" }, t))));
+  box.append(h("button", { class: "pri", style: "width:100%", onclick: cardModal }, "📸 Criar cartão para o Instagram"));
+  return box;
+}
+function bookStats(b) {
+  const dias = Object.keys(b.log || {}).length, ate = b.fim && b.status === "lido" ? b.fim : today();
+  return h("div", { class: "card" }, h("h3", {}, "Métricas do livro"), h("div", { class: "grid2", style: "margin:0" },
+    tile(fmtMin(b.min || 0), "tempo lido"), tile(dias, "dias de leitura"),
+    tile(dias ? fmtMin(Math.round((b.min || 0) / dias)) : "–", "média por dia lido"),
+    tile(b.created ? plural(Math.max(0, dBetween(b.created, ate)), "dia", "dias") : "–", b.status === "lido" ? "do início ao fim" : "desde que começou"),
+    tile((b.captar || []).length, "grifos e ideias"), tile((b.photos || []).length, "fotos"),
+    tile((b.cats || []).length, "tags"), tile(passos(b) + " de 5", "passos dos 5 Cs")),
+    h("div", { class: "sub", style: "margin:8px 0 0" }, "O tempo é somado quando você escolhe este livro em \"Livro desta leitura\", na aba Hoje."));
+}
+
+/* ---------- cartão para o Instagram ---------- */
+const SHARE_MARCOS = [7, 10, 21, 30, 50, 100];
+function shareOpts() { const s = P().share || (P().share = {}); if (s.fmt === undefined) Object.assign(s, { fmt: "story", lendo: true, lidos: false, met: false, nome: true }); return s; }
+function fit(x, t, max) { if (x.measureText(t).width <= max) return t; while (t.length > 1 && x.measureText(t + "…").width > max) t = t.slice(0, -1); return t + "…"; }
+function drawCard() {
+  const s = shareOpts(), st = streak(), p = PEOPLE[atual], W = 1080, H = s.fmt === "feed" ? 1350 : 1920, story = H > 1500;
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#d0703a"); g.addColorStop(1, "#7d3314"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  const F = '-apple-system,"Segoe UI",Roboto,"Apple Color Emoji","Noto Color Emoji",sans-serif', books = Object.values(L());
+  x.textAlign = "center"; x.fillStyle = "#fff"; let y = story ? 200 : 130;
+  x.globalAlpha = .85; x.font = "bold 40px " + F; x.fillText("MEU SISTEMA DE LEITURA", W / 2, y); x.globalAlpha = 1;
+  y += story ? 230 : 190; x.font = "200px " + F; x.fillText("🔥", W / 2, y);
+  y += story ? 300 : 260; x.font = "bold " + (story ? 300 : 260) + "px " + F; x.fillText(String(st), W / 2, y);
+  y += 90; x.font = "bold 68px " + F; x.fillText(st === 1 ? "dia seguido lendo" : "dias seguidos lendo", W / 2, y);
+  if (s.nome) { y += 90; x.font = "52px " + F; x.fillText(p.e + " " + p.n, W / 2, y); }
+  if (s.met) {
+    const t = Object.values(habit()).reduce((a, b) => a + b, 0), nl = books.filter(b => b.status === "lido").length;
+    y += 80; x.font = "44px " + F; x.fillText(fmtMin(t) + " de leitura · " + plural(nl, "livro lido", "livros lidos"), W / 2, y);
+  }
+  const maxItens = story ? 3 : 2;
+  const sec = (titulo, arr) => {
+    if (!arr.length) return; y += story ? 100 : 80; x.textAlign = "left"; x.font = "bold 44px " + F; x.fillText(titulo, 100, y); x.font = "42px " + F;
+    arr.slice(0, maxItens).forEach(b => { y += 62; x.fillText("• " + fit(x, b.title || "Sem título", W - 260), 120, y); }); x.textAlign = "center";
+  };
+  if (s.lendo) sec("📖 Lendo agora", books.filter(b => b.status === "lendo"));
+  if (s.lidos) sec("✅ Já li", books.filter(b => b.status === "lido").sort((a, b) => (b.fim || "").localeCompare(a.fim || "")));
+  x.globalAlpha = .75; x.font = "38px " + F; x.fillText("Ler um pouco todo dia muda tudo", W / 2, H - 80); x.globalAlpha = 1;
+  return c;
+}
+async function cardBlob(cv) { return new Promise(r => cv.toBlob(r, "image/png")); }
+async function downloadCard(cv) {
+  const url = URL.createObjectURL(await cardBlob(cv)), a = h("a", { href: url, download: "ofensiva-de-leitura.png" });
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function shareCard(cv) {
+  const blob = await cardBlob(cv), f = new File([blob], "ofensiva-de-leitura.png", { type: "image/png" });
+  if (navigator.canShare && navigator.canShare({ files: [f] })) {
+    try { await navigator.share({ files: [f], title: "Meu Sistema de Leitura" }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  await downloadCard(cv); toast("Imagem baixada. Agora é só postar no Instagram.");
+}
+function cardModal() {
+  const s = shareOpts(), prev = h("img", { alt: "prévia do cartão", style: "width:100%;max-height:52vh;object-fit:contain;border-radius:12px;background:#0002" });
+  let cv = null; const redraw = () => { cv = drawCard(); prev.src = cv.toDataURL("image/png"); };
+  const chk = (key, label) => h("label", { class: "check", style: "margin:0;color:var(--ink);font-size:15px" },
+    h("input", { type: "checkbox", checked: s[key] ? true : false, onchange: e => { s[key] = e.target.checked; savePf(); redraw(); } }), label);
+  const fm = h("select", { onchange: e => { s.fmt = e.target.value; savePf(); redraw(); } },
+    h("option", { value: "story", selected: s.fmt === "story" ? true : false }, "Stories (vertical)"), h("option", { value: "feed", selected: s.fmt === "feed" ? true : false }, "Feed (4:5)"));
+  const m = h("div", { class: "modal", onclick: e => { if (e.target === m) m.remove(); } }, h("div", { class: "card", style: "max-width:420px;width:100%;margin:auto" },
+    h("h3", {}, "Cartão para o Instagram"), prev,
+    chk("lendo", "Mostrar livros que estou lendo"), chk("lidos", "Mostrar livros que já li"), chk("met", "Mostrar métricas (tempo e livros lidos)"), chk("nome", "Mostrar meu nome"),
+    h("label", {}, "Formato"), fm,
+    h("div", { class: "row", style: "margin-top:12px" }, h("button", { class: "pri grow", onclick: () => shareCard(cv) }, "Compartilhar"), h("button", { onclick: () => downloadCard(cv) }, "Baixar"), h("button", { class: "ghost", onclick: () => m.remove() }, "Fechar"))));
+  document.body.append(m); redraw();
 }
 
 /* ---------- meta e backup ---------- */
