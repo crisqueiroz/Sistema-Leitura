@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meu Sistema de Leitura</title>
+<style>
+:root{--bg:#faf6ef;--card:#fff;--ink:#2b2622;--mute:#7a6f64;--line:#e8dfd2;--acc:#b4532a;--acc2:#f3e3d6;--ok:#3d7a4f;--ok2:#e0f0e4;--r:16px}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1a17;--card:#27231f;--ink:#f1ebe3;--mute:#a79c90;--line:#3a342d;--acc:#e58a5c;--acc2:#3a2a20;--ok:#7cc38f;--ok2:#1f3326}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+#app{max-width:640px;margin:0 auto;padding:16px 16px 96px}
+h1{font-size:22px;margin:4px 0 2px}h2{font-size:18px;margin:0 0 8px}h3{font-size:15px;margin:0 0 6px}
+.sub{color:var(--mute);font-size:14px;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:0 0 12px}
+.row{display:flex;gap:8px;align-items:center}.row>*{min-width:0}.grow{flex:1}.wrap{flex-wrap:wrap}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;cursor:pointer}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+button.ghost{background:transparent}button.sm{padding:6px 10px;font-size:14px}
+button.danger{color:#c0392b;border-color:#c0392b55}
+input,textarea,select{font:inherit;width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg);color:var(--ink)}
+textarea{min-height:76px;resize:vertical}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+.nav button{flex:1;border:0;background:transparent;padding:8px 4px;font-size:13px;color:var(--mute)}
+.nav button.on{color:var(--acc);font-weight:700}
+.nav b{display:block;font-size:20px;line-height:1.1}
+.chip{display:inline-block;padding:4px 10px;border-radius:99px;background:var(--acc2);color:var(--acc);font-size:13px;margin:0 6px 6px 0}
+.chip.btn{cursor:pointer;border:1px solid transparent}.chip.sel{background:var(--acc);color:#fff}
+.chip.ok{background:var(--ok2);color:var(--ok)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}
+.dots{display:flex;gap:6px}.dots span{flex:1;text-align:center;font-size:12px;color:var(--mute)}
+.dots em{display:block;height:28px;border-radius:8px;background:var(--line);margin-bottom:2px}.dots .d em{background:var(--ok)}.dots .t em{outline:2px solid var(--acc)}
+.big{font-size:44px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0}
+.check{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.check:last-child{border:0}
+.check input{width:22px;height:22px;flex:none}
+.book{display:flex;gap:12px;align-items:center;cursor:pointer}
+.thumb{width:44px;height:60px;border-radius:6px;background:var(--acc2);object-fit:cover;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px}
+.photos{display:flex;gap:8px;overflow-x:auto;padding:4px 0}.photos img{height:90px;border-radius:8px;flex:none}
+.step{border:1px solid var(--line);border-radius:14px;margin:0 0 10px;background:var(--card)}
+.step>summary{list-style:none;padding:12px 14px;font-weight:600;cursor:pointer;display:flex;gap:10px;align-items:center}
+.step>summary::-webkit-details-marker{display:none}
+.step .n{width:26px;height:26px;border-radius:50%;background:var(--acc2);color:var(--acc);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.step.done .n{background:var(--ok);color:#fff}
+.step>div{padding:0 14px 14px}
+.hl{border-left:3px solid var(--acc);padding:4px 0 4px 10px;margin:8px 0}
+.hl small{color:var(--mute)}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;z-index:9}
+.lb{position:fixed;inset:0;background:#000d;display:flex;align-items:center;justify-content:center;z-index:10}.lb img{max-width:94%;max-height:90%;border-radius:8px}
+.stars button{border:0;background:none;font-size:26px;padding:2px;color:var(--line)}.stars button.on{color:#e0a82e}
+.empty{text-align:center;color:var(--mute);padding:24px 8px}
+.sync{font-size:12px;color:var(--mute)}
+.ajuda{background:var(--acc2);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:14px}
+.ajuda summary{cursor:pointer;font-weight:600;color:var(--acc)}.ajuda p{margin:8px 0}
+.ajuda .ex{background:var(--card);border-radius:10px;padding:8px 10px}
+.who{display:grid;grid-template-columns:1fr 1fr;gap:12px}.who button{padding:22px 8px;font-size:18px;border-radius:var(--r)}.who b{display:block;font-size:40px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="nav" id="nav"></nav>
+<script>
+"use strict";
+/* ---------- util ---------- */
+const $ = s => document.querySelector(s);
+function h(t, a, ...c) {
+  const e = document.createElement(t);
+  for (const k in (a || {})) {
+    const v = a[k];
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "value") e.value = v;
+    else if (v === true) e.setAttribute(k, "");
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  for (const x of c.flat(9)) { if (x == null || x === false) continue; e.append(x.nodeType ? x : document.createTextNode(String(x))); }
+  return e;
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+const today = () => new Date().toLocaleDateString("sv");
+const dayOffset = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv"); };
+const uid36 = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+let toastT;
+function toast(m) { document.querySelectorAll(".toast").forEach(e => e.remove()); const t = h("div", { class: "toast" }, m); document.body.append(t); clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 2600); }
+
+/* ---------- pessoas, estado e armazenamento ---------- */
+const PEOPLE = {
+  cris: { n: "Cris", e: "👩", f: "adulto" }, deyvid: { n: "Deyvid", e: "👨", f: "adulto" },
+  laura: { n: "Laura", e: "🧑", f: "teen" }, alice: { n: "Alice", e: "👧", f: "kid" }
+};
+const DEF_MIN = { adulto: 10, teen: 15, kid: 10 };
+let S = { pf: {} }, atual = null;
+let db = null, uid = null, assets = null, mode = "local", loadedOnce = false;
+const LS = "sistema_leitura_v2", LSA = "sistema_leitura_atual";
+const timers = {}, chain = {};
+function PF(id) { id = id || atual; return S.pf[id] || (S.pf[id] = { perfil: {}, livros: {} }); }
+const P = () => PF().perfil, L = () => PF().livros, faixa = () => PEOPLE[atual].f;
+const kP = id => "perfil_" + (id || atual), kB = (b, id) => "livro_" + (id || atual) + "_" + b.id;
+function lsLoad() {
+  try {
+    const x = JSON.parse(localStorage.getItem(LS) || "null");
+    if (x && x.pf) S = x;
+    else { const o = JSON.parse(localStorage.getItem("sistema_leitura_v1") || "null"); if (o && o.livros) S = { pf: { cris: { perfil: o.perfil || {}, livros: o.livros } } }; }
+    const a = localStorage.getItem(LSA); atual = PEOPLE[a] ? a : null;
+  } catch (e) {}
+}
+function lsSave() { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { toast("Armazenamento cheio neste aparelho"); } }
+function save(key) {
+  if (mode === "local") { lsSave(); return; }
+  clearTimeout(timers[key]);
+  timers[key] = setTimeout(() => { delete timers[key]; chain[key] = (chain[key] || Promise.resolve()).then(() => write(key)); }, 500);
+}
+const savePf = () => save(kP());
+const saveBook = b => save(kB(b));
+function dataFor(key) { const p = key.split("_"); return p[0] === "perfil" ? PF(p[1]).perfil : PF(p[1]).livros[p.slice(2).join("_")]; }
+async function write(key) {
+  const data = dataFor(key);
+  if (!data) return;
+  try { await db.collection("data/users/" + uid).doc(key).set(clone(data)); }
+  catch (e) { toast("Não consegui salvar na conta. Tente de novo."); }
+}
+async function removeDoc(key) { try { await db.collection("data/users/" + uid).doc(key).delete(); } catch (e) { toast("Não consegui excluir na conta."); } }
+function saveAllCloud(id) { id = id || atual; save(kP(id)); Object.keys(PF(id).livros).forEach(i => save("livro_" + id + "_" + i)); }
+
+function subscribe() {
+  const localS = S, hadLocal = Object.values(S.pf).some(x => Object.keys(x.livros).length || Object.keys(x.perfil).length);
+  const t = setTimeout(() => { if (!loadedOnce) toast("Sem resposta da conta. Mostrando dados deste aparelho."); }, 10000);
+  db.collection("data/users/" + uid).onSnapshot(snap => {
+    clearTimeout(t);
+    if (!loadedOnce && snap.empty && hadLocal) { S = localS; mode = "cloud"; loadedOnce = true; Object.keys(S.pf).forEach(saveAllCloud); soft(); return; }
+    if (!loadedOnce) S = { pf: {} };
+    const legacy = { perfil: null, livros: {} };
+    snap.docs.forEach(d => {
+      if (timers[d.id]) return;
+      const v = clone(d.data()), p = d.id.split("_");
+      if (p[0] === "perfil") { if (p.length === 1) legacy.perfil = v; else if (PEOPLE[p[1]]) PF(p[1]).perfil = v; }
+      else if (p[0] === "livro") { if (p.length === 2) legacy.livros[p[1]] = v; else if (PEOPLE[p[1]]) PF(p[1]).livros[p.slice(2).join("_")] = v; }
+    });
+    snap.docChanges().forEach(c => { if (c.type === "removed") { const p = c.doc.id.split("_"); if (p[0] === "livro" && p.length >= 3 && S.pf[p[1]]) delete S.pf[p[1]].livros[p.slice(2).join("_")]; } });
+    if (legacy.perfil || Object.keys(legacy.livros).length) { // dados da versão anterior passam para a Cris
+      if (legacy.perfil) { PF("cris").perfil = Object.assign({}, legacy.perfil, PF("cris").perfil); removeDoc("perfil"); }
+      Object.entries(legacy.livros).forEach(([i, b]) => { PF("cris").livros[i] = b; removeDoc("livro_" + i); });
+      saveAllCloud("cris");
+    }
+    loadedOnce = true; mode = "cloud"; soft();
+  }, () => { mode = "local"; toast("Sincronização indisponível. Usando este aparelho."); soft(); });
+}
+
+async function init() {
+  lsLoad(); route();
+  try {
+    if (window.claude && claude.use) {
+      const [d, u, a] = await Promise.all([claude.use("db"), claude.use("user"), claude.use("assets")]);
+      assets = a;
+      if (d && u) { const id = await u.id(); if (id) { db = d; uid = id; subscribe(); } }
+    }
+  } catch (e) {}
+  soft();
+}
+
+
+/* ---------- ajuda por parte, adaptada à idade ---------- */
+const HELP = {
+  ritual: {
+    kid: { o: "É um tempinho todo dia só para ler, de preferência no mesmo horário.", c: "Escolha quantos minutos você quer e aperte \"Começar a ler\". Quando o tempo acabar, o dia fica pintado de verde. Quanto mais dias seguidos, melhor!", ex: "Todo dia depois do lanche eu leio 10 minutos. Já tenho 5 dias verdes seguidos." },
+    teen: { o: "É um tempo fixo por dia, curto, mas sem faltar. Ler pouco todo dia vale mais do que muito de vez em quando.", c: "Escolha um tempo realista, aperte \"Começar a ler\" e leia sem mexer no celular. Se já leu sem o cronômetro, use \"Já li hoje\".", ex: "Leio 15 minutos antes de dormir, depois de guardar o celular." },
+    adulto: { o: "É o compromisso mínimo diário com a leitura. A constância pesa mais do que a duração.", c: "Defina um tempo que você cumpre mesmo nos dias ruins, associe a um horário fixo e use o cronômetro. Se errar a marcação, use \"Desfazer hoje\".", ex: "10 minutos logo depois do café, antes de abrir e-mails." }
+  },
+  atencao: {
+    kid: { o: "É se preparar para ler com a cabeça só no livro.", c: "Antes de começar, marque cada item que você já fez.", ex: "Guardei o celular na gaveta e peguei meu lápis. Agora é só ler!" },
+    teen: { o: "É preparar o ambiente e a cabeça para o foco aparecer.", c: "Marque os itens antes de abrir o livro. Leva menos de um minuto.", ex: "Coloquei o celular no modo foco e defini: hoje quero entender o capítulo 3." },
+    adulto: { o: "É reduzir distrações e definir uma intenção antes de ler.", c: "Passe pelos itens e defina uma pergunta que o capítulo deve responder.", ex: "Celular em outro cômodo; pergunta do dia: como dar feedback sem desmotivar?" }
+  },
+  captar: {
+    kid: { o: "Captar é guardar as partes que você mais gostou enquanto lê.", c: "Quando achar uma parte legal, engraçada ou que ensinou algo, escreva uma frase curta ou tire uma foto da página. Pode pedir ajuda para escrever.", ex: "Li um livro sobre animais do mar e anotei: \"O polvo tem três corações!\" (página 12)." },
+    teen: { o: "Captar é registrar na hora o que vale lembrar: ideias, frases e dúvidas.", c: "Leia com lápis ou marcador. Anote com suas palavras e a página, ou fotografe o trecho. Anote também o que você não entendeu.", ex: "Livro de história: \"A crise de impostos e a alta do pão ajudaram a causar a Revolução Francesa\" (pág. 45). Dúvida: por que a nobreza perdeu poder?" },
+    adulto: { o: "Captar é tirar do livro as ideias que podem ser úteis na sua vida ou no seu trabalho.", c: "Marque durante a leitura e registre depois, em uma linha, com a página. Fotografe o grifo quando for mais rápido. Poucas ideias boas valem mais do que muitos grifos.", ex: "Livro sobre liderança: feedback curto e frequente funciona melhor do que uma avaliação longa no fim do ano (pág. 88)." }
+  },
+  categorizar: {
+    kid: { o: "Categorizar é guardar cada livro numa gavetinha do assunto certo.", c: "Escolha uma ou duas palavras que combinem com o livro, como animais, aventura ou amizade. Toque numa palavra sugerida ou escreva a sua.", ex: "O livro sobre polvos vai nas gavetinhas: animais e mar." },
+    teen: { o: "É classificar o livro por assunto ou matéria para achar depois.", c: "Crie tags curtas, como matéria, tema ou projeto. Use sempre as mesmas, para os livros se encontrarem na busca.", ex: "Livro de história: tags \"história\", \"revolução\" e \"prova\"." },
+    adulto: { o: "É organizar o livro pelos assuntos e projetos da sua vida, não só pelo título.", c: "Use de 2 a 4 tags por livro, ligadas ao que você quer desenvolver (veja seus temas na aba Meta).", ex: "Livro sobre hábitos: tags \"foco\", \"rotina\" e \"produtividade\"." }
+  },
+  condensar: {
+    kid: { o: "Condensar é contar o livro bem curtinho, com as suas palavras.", c: "Complete: \"O livro fala de...\". Depois escreva ou conte em voz alta 3 coisas que você aprendeu.", ex: "O livro fala de animais do mar. Aprendi: o polvo tem três corações; a baleia é mamífero; o tubarão não tem ossos." },
+    teen: { o: "É resumir com as suas palavras, sem copiar o texto.", c: "Escreva uma frase que resuma o livro e 3 ideias principais. Se não conseguir explicar sem olhar, releia aquela parte.", ex: "Frase: \"A Revolução Francesa tirou o poder do rei.\" Ideias: 1) crise econômica; 2) ideias iluministas; 3) fim da monarquia absoluta." },
+    adulto: { o: "É reduzir o livro ao essencial, para não precisar reler tudo depois.", c: "Escreva uma frase com a tese do livro e 3 ideias que valem guardar, com suas palavras.", ex: "Frase: \"Mudanças pequenas e diárias geram grandes resultados.\" Ideias: começar pequeno; ligar o hábito a uma rotina; contar os dias seguidos." }
+  },
+  concretizar: {
+    kid: { o: "Concretizar é usar de verdade o que você aprendeu, não só ler.", c: "Escolha uma coisa pequena para fazer, diga quando vai fazer e marque quando fizer.", ex: "Vou contar para a família sobre os corações do polvo no jantar de sábado." },
+    teen: { o: "É transformar uma ideia do livro em algo que você faz.", c: "Defina uma ação pequena, clara e com data. Marque quando fizer.", ex: "Vou montar um mapa mental da Revolução Francesa no domingo e usar para revisar." },
+    adulto: { o: "É fazer a ideia sair do papel. Sem isso, o livro vira só informação.", c: "Escolha uma ação específica, pequena e com data, ligada a um problema real. Depois marque como feita.", ex: "Vou abrir a reunião de segunda com 3 minutos de alinhamento e ver se melhora o foco do time." }
+  },
+  catalogar: {
+    kid: { o: "Catalogar é guardar o livro na sua estante de livros lidos.", c: "Quando terminar, escolha a data e dê estrelinhas. Assim você encontra o livro depois.", ex: "Terminei no dia 20 e dei 5 estrelas porque amei os bichos." },
+    teen: { o: "É deixar o livro registrado e fácil de achar.", c: "Coloque a data em que terminou e uma nota. Marque como \"Lido\" na situação do livro.", ex: "Terminei em 20/11, nota 4: gostei, mas a parte final foi lenta." },
+    adulto: { o: "É fechar o ciclo: o livro fica registrado e pesquisável para o futuro.", c: "Informe a data em que terminou e uma nota. Depois, a busca por tema encontra o livro e as suas anotações.", ex: "Terminei em 20/11, nota 5; tags: foco e rotina." }
+  },
+  meta: {
+    kid: { o: "A meta é o que você quer conseguir com a leitura.", c: "Escreva por que quer ler mais e quantos livros quer terminar no mês. Peça ajuda se precisar.", ex: "Quero ler 2 livros neste mês para conhecer mais animais." },
+    teen: { o: "É saber por que e quanto você quer ler.", c: "Escreva seu objetivo, os temas que quer explorar e uma meta de livros por mês que dê para cumprir.", ex: "Quero ler 1 livro por mês e melhorar minha interpretação de texto." },
+    adulto: { o: "É saber para onde você vai: o que quer desenvolver e quanto vai ler.", c: "Escreva seu objetivo, escolha 2 a 3 temas e uma meta mensal realista. As tags dos livros usam esses temas.", ex: "Objetivo: liderar melhor. Temas: liderança, comunicação. Meta: 1 livro por mês." }
+  }
+};
+function helpBox(k) {
+  const x = HELP[k][faixa()];
+  return h("details", { class: "ajuda" }, h("summary", {}, "💡 O que é e como fazer"),
+    h("p", {}, h("b", {}, "O que é: "), x.o), h("p", {}, h("b", {}, "Como fazer: "), x.c), h("p", { class: "ex" }, h("b", {}, "Exemplo: "), x.ex));
+}
+
+/* ---------- navegação ---------- */
+const TABS = [["hoje", "☀️", "Hoje"], ["livros", "📚", "Livros"], ["meta", "🎯", "Meta"]];
+let view = "hoje", openId = null, q = "", filtro = "todos";
+function route() {
+  const hsh = location.hash.slice(1);
+  view = TABS.some(t => t[0] === hsh) ? hsh : "hoje";
+  openId = null; render();
+}
+window.addEventListener("hashchange", route);
+function go(v) { if (location.hash.slice(1) === v) { openId = null; render(); } else location.hash = v; }
+function escolher() {
+  const g = h("div", { class: "who" });
+  Object.entries(PEOPLE).forEach(([id, p]) => g.append(h("button", { onclick: () => { atual = id; PF(id); try { localStorage.setItem(LSA, id); } catch (e) {} openId = null; render(); } }, h("b", {}, p.e), p.n)));
+  return h("div", {}, h("h1", {}, "Quem vai ler agora?"), h("p", { class: "sub" }, "Cada pessoa tem seus próprios livros, metas e dias seguidos."), g);
+}
+function topbar() {
+  const p = PEOPLE[atual];
+  return h("div", { class: "row", style: "margin-bottom:8px" }, h("span", { class: "chip", style: "margin:0" }, p.e + " " + p.n), h("div", { class: "grow" }),
+    h("button", { class: "ghost sm", onclick: () => { if (tEnd) return toast("Termine ou cancele o cronômetro antes de trocar"); atual = null; try { localStorage.removeItem(LSA); } catch (e) {} openId = null; render(); } }, "Trocar pessoa"));
+}
+function soft() { const a = document.activeElement; if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return; render(); }
+function render() {
+  const nav = $("#nav"); nav.replaceChildren(...TABS.map(([k, i, l]) => h("button", { class: view === k && !openId ? "on" : "", onclick: () => go(k) }, h("b", {}, i), l)));
+  const app = $("#app"); app.replaceChildren();
+  if (!atual) { nav.replaceChildren(); app.append(escolher()); return; }
+  app.append(topbar());
+  if (openId && L()[openId]) app.append(ficha(L()[openId]));
+  else if (view === "hoje") app.append(hoje());
+  else if (view === "livros") app.append(livros());
+  else app.append(meta());
+}
+
+/* ---------- hábito ---------- */
+const minDia = () => Number(P().minDia) || DEF_MIN[faixa()];
+function habit() { return P().habit || (P().habit = {}); }
+function goals() { return P().goal || (P().goal = {}); }
+function dayDone(k) { return (habit()[k] || 0) >= (goals()[k] || minDia()); }
+function streak() { let n = 0, i = dayDone(today()) ? 0 : -1; while (dayDone(dayOffset(i))) { n++; i--; } return n; }
+function logMinutes(m) { if (!goals()[today()]) goals()[today()] = minDia(); habit()[today()] = (habit()[today()] || 0) + m; savePf(); }
+function setMin(n) { if (tEnd) return; P().minDia = n; if (!(habit()[today()] > 0)) delete goals()[today()]; savePf(); render(); }
+let tEnd = null, tInt = null;
+function startTimer() {
+  tEnd = Date.now() + minDia() * 60000;
+  clearInterval(tInt);
+  tInt = setInterval(() => {
+    const el = $("#clock"); const left = Math.max(0, tEnd - Date.now());
+    if (el) el.textContent = fmt(left);
+    if (left <= 0) { clearInterval(tInt); tEnd = null; logMinutes(minDia()); try { navigator.vibrate && navigator.vibrate(300); } catch (e) {} toast("Leitura do dia concluída 🎉"); render(); }
+  }, 500); render();
+}
+function stopTimer() { clearInterval(tInt); tEnd = null; render(); }
+const fmt = ms => { const s = Math.ceil(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+
+function tempoChips() {
+  const box = h("div", { style: "margin-bottom:8px" }, h("div", { class: "sub", style: "margin:0 0 4px" }, "Quanto tempo você quer ler por dia?"));
+  [5, 10, 15, 20, 30, 45].forEach(n => box.append(h("span", { class: "chip btn" + (minDia() === n ? " sel" : ""), onclick: () => setMin(n) }, n + " min")));
+  const inp = h("input", { type: "number", min: 1, max: 240, placeholder: "outro", style: "width:84px;padding:4px 8px;display:inline-block", onchange: e => { const n = Math.round(Number(e.target.value)); if (n >= 1 && n <= 240) setMin(n); } });
+  box.append(inp); return box;
+}
+const CHECKS = {
+  kid: ["TV desligada e celular guardado", "Sei o que quero descobrir no livro", "Estou num lugar confortável", "Tenho lápis ou marcador por perto"],
+  teen: ["Celular longe ou no modo foco", "Sei o que quero tirar deste capítulo", "Lugar confortável e com luz", "Marcador ou caneta à mão"],
+  adulto: ["Celular longe ou no modo foco", "Sei o que quero tirar deste capítulo", "Lugar confortável e com luz", "Marcador ou caneta à mão"]
+};
+function hoje() {
+  const box = h("div", {});
+  const st = streak(), done = dayDone(today());
+  box.append(h("h1", {}, "Hoje"), h("p", { class: "sub" }, st ? `${st} dia${st > 1 ? "s" : ""} seguido${st > 1 ? "s" : ""}. Continue assim.` : "Comece com " + minDia() + " minutos."));
+  // semana
+  const dots = h("div", { class: "dots" });
+  for (let i = -6; i <= 0; i++) { const k = dayOffset(i), d = new Date(k + "T12:00:00"); dots.append(h("span", { class: (dayDone(k) ? "d " : "") + (i === 0 ? "t" : "") }, h("em", {}), "DSTQQSS"[d.getDay()])); }
+  // timer
+  const timerCard = h("div", { class: "card" }, h("h2", {}, "Ritual de " + minDia() + " minutos"), helpBox("ritual"), tempoChips(), dots,
+    h("div", { class: "big", id: "clock" }, tEnd ? fmt(Math.max(0, tEnd - Date.now())) : done ? "✓ feito" : fmt(minDia() * 60000)),
+    h("div", { class: "row" },
+      tEnd ? h("button", { class: "grow", onclick: stopTimer }, "Cancelar") : h("button", { class: "pri grow", onclick: startTimer }, done ? "Ler mais" : "Começar a ler"),
+      !tEnd && !done ? h("button", { onclick: () => { logMinutes(minDia()); render(); } }, "Já li hoje") : null),
+    !tEnd && (habit()[today()] || 0) > 0 ? h("button", { class: "ghost sm", style: "margin-top:8px", onclick: () => { delete habit()[today()]; delete goals()[today()]; savePf(); toast("Hoje foi desfeito"); render(); } }, "↩ Desfazer hoje") : null);
+  // atenção
+  const c = P().check && P().check.d === today() ? P().check : (P().check = { d: today(), on: [] });
+  const att = h("div", { class: "card" }, h("h3", {}, "Antes de abrir o livro"), helpBox("atencao"));
+  CHECKS[faixa()].forEach((t, i) => att.append(h("label", { class: "check", style: "margin:0;color:var(--ink);font-size:15px" },
+    h("input", { type: "checkbox", checked: c.on.includes(i) ? true : false, onchange: e => { c.on = e.target.checked ? [...new Set([...c.on, i])] : c.on.filter(x => x !== i); savePf(); } }), t)));
+  // lendo
+  const lendo = Object.values(L()).filter(b => b.status === "lendo");
+  const rd = h("div", { class: "card" }, h("h3", {}, "Lendo agora"));
+  if (!lendo.length) rd.append(h("p", { class: "sub", style: "margin:0" }, "Nenhum livro em leitura. Adicione um na aba Livros."));
+  lendo.forEach(b => rd.append(h("div", { class: "book", style: "padding:6px 0", onclick: () => { openId = b.id; render(); } }, thumb(b), h("div", { class: "grow" }, h("b", {}, b.title), h("div", { class: "sub", style: "margin:0" }, passos(b) + " de 5 passos")))));
+  box.append(timerCard, att, rd);
+  return box;
+}
+
+/* ---------- livros ---------- */
+const STATUS = { quero: "Quero ler", lendo: "Lendo", lido: "Lido" };
+const thumb = b => b.photos && b.photos[0] ? h("img", { class: "thumb", src: pUrl(b.photos[0]), alt: "" }) : h("div", { class: "thumb" }, "📖");
+const pUrl = p => p.id ? "/_blob/" + p.id : p.data;
+function passos(b) { return [(b.captar || []).length || (b.photos || []).length, (b.cats || []).length, b.frase, b.acao, b.fim || b.status === "lido"].filter(Boolean).length; }
+function newBook() {
+  const id = uid36();
+  L()[id] = { id, title: "", author: "", theme: "", status: "lendo", photos: [], captar: [], cats: [], frase: "", ideias: "", acao: "", quando: "", feito: false, fim: "", nota: 0, created: today() };
+  saveBook(L()[id]); openId = id; render();
+}
+function livros() {
+  const box = h("div", {}, h("div", { class: "row" }, h("h1", { class: "grow" }, "Biblioteca"), h("button", { class: "pri", onclick: newBook }, "+ Livro")));
+  box.append(h("input", { type: "search", placeholder: "Buscar por título, autor, tema ou tag", value: q, oninput: e => { q = e.target.value; clearTimeout(box._t); box._t = setTimeout(() => { const l = $("#lista"); l && l.replaceWith(lista()); }, 150); }, style: "margin:8px 0" }));
+  const chips = h("div", {}); ["todos", "lendo", "quero", "lido"].forEach(k => chips.append(h("span", { class: "chip btn" + (filtro === k ? " sel" : ""), onclick: () => { filtro = k; render(); } }, k === "todos" ? "Todos" : STATUS[k])));
+  box.append(chips, lista());
+  return box;
+}
+function lista() {
+  const t = q.trim().toLowerCase();
+  const arr = Object.values(L()).filter(b => (filtro === "todos" || b.status === filtro) && (!t || [b.title, b.author, b.theme, ...(b.cats || [])].join(" ").toLowerCase().includes(t))).sort((a, b) => (b.updated || b.created || "").localeCompare(a.updated || a.created || ""));
+  const box = h("div", { id: "lista" });
+  if (!arr.length) box.append(h("div", { class: "empty" }, Object.keys(L()).length ? "Nada encontrado." : "Sua biblioteca está vazia. Toque em + Livro para começar."));
+  arr.forEach(b => box.append(h("div", { class: "card book", onclick: () => { openId = b.id; render(); } }, thumb(b),
+    h("div", { class: "grow" }, h("b", {}, b.title || "Sem título"), h("div", { class: "sub", style: "margin:0" }, [b.author, STATUS[b.status]].filter(Boolean).join(" · ")),
+      h("div", { class: "bar", style: "margin-top:6px" }, h("i", { style: "width:" + passos(b) * 20 + "%" })), (b.cats || []).slice(0, 3).map(c => h("span", { class: "chip", style: "margin-top:6px" }, c))))));
+  return box;
+}
+
+/* ---------- ficha do livro (5 Cs) ---------- */
+async function shrink(file, max, qlt) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+    const r = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * r); c.height = Math.round(img.naturalHeight * r);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    return c;
+  } finally { URL.revokeObjectURL(url); }
+}
+async function addPhoto(b, file) {
+  if (!file) return;
+  try {
+    toast("Salvando foto…");
+    if (assets) {
+      const c = await shrink(file, 1100), blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.72));
+      const up = await assets.upload(blob); b.photos.push({ id: up.id });
+    } else {
+      const c = await shrink(file, 480); b.photos.push({ data: c.toDataURL("image/jpeg", 0.6) });
+    }
+    touch(b); render(); toast("Foto adicionada");
+  } catch (e) { toast("Não consegui salvar a foto."); }
+}
+function touch(b) { b.updated = today() + "T" + Date.now(); saveBook(b); }
+function field(b, key, label, tag = "input", extra = {}) {
+  const el = h(tag, { value: b[key] || "", ...extra, oninput: e => { b[key] = e.target.value; touch(b); upd(b); } });
+  return h("div", {}, label ? h("label", {}, label) : null, el);
+}
+let updBar = null;
+function upd(b) { if (updBar) { updBar.style.width = passos(b) * 20 + "%"; } document.querySelectorAll("[data-step]").forEach(s => s.classList.toggle("done", stepDone(b, +s.dataset.step))); }
+const stepDone = (b, i) => !!([(b.captar || []).length || (b.photos || []).length, (b.cats || []).length, b.frase, b.acao, b.fim || b.status === "lido"][i]);
+function step(b, i, titulo, ...body) {
+  return h("details", { class: "step" + (stepDone(b, i) ? " done" : ""), "data-step": i, open: i === 0 ? true : false }, h("summary", {}, h("span", { class: "n" }, i + 1), titulo), h("div", {}, body));
+}
+function ficha(b) {
+  const box = h("div", {});
+  box.append(h("div", { class: "row" }, h("button", { class: "ghost", onclick: () => { openId = null; render(); } }, "← Voltar"), h("div", { class: "grow" })));
+  updBar = h("i", { style: "width:" + passos(b) * 20 + "%" });
+  box.append(h("div", { class: "card" },
+    field(b, "title", "Título", "input", { placeholder: "Nome do livro" }), field(b, "author", "Autor", "input"), field(b, "theme", "Tema principal (ex.: liderança, IA)", "input"),
+    h("label", {}, "Situação"),
+    h("select", { onchange: e => { b.status = e.target.value; if (b.status === "lido" && !b.fim) b.fim = today(); touch(b); render(); } }, Object.entries(STATUS).map(([k, v]) => h("option", { value: k, selected: b.status === k ? true : false }, v))),
+    h("div", { class: "bar", style: "margin-top:12px" }, updBar), h("div", { class: "sub", style: "margin:4px 0 0" }, "Passos concluídos pelos 5 Cs")));
+
+  // 1 Captar
+  const photos = h("div", { class: "photos" }, (b.photos || []).map((p, i) => h("img", { src: pUrl(p), alt: "foto " + (i + 1), onclick: () => lightbox(b, i) })));
+  const fileIn = h("input", { type: "file", accept: "image/*", capture: "environment", style: "display:none", onchange: e => addPhoto(b, e.target.files[0]) });
+  const galIn = h("input", { type: "file", accept: "image/*", style: "display:none", onchange: e => addPhoto(b, e.target.files[0]) });
+  const hlList = h("div", {});
+  const drawHl = () => { hlList.replaceChildren(...(b.captar || []).map((x, i) => h("div", { class: "hl" }, x.t, h("div", {}, x.p ? h("small", {}, "pág. " + x.p + " ") : null, h("button", { class: "ghost sm", onclick: () => { b.captar.splice(i, 1); touch(b); drawHl(); upd(b); } }, "remover"))))); };
+  drawHl();
+  const hlT = h("textarea", { placeholder: "Grifo ou ideia que chamou sua atenção", style: "min-height:60px" }), hlP = h("input", { type: "number", placeholder: "pág.", style: "width:90px" });
+  box.append(step(b, 0, "Captar", helpBox("captar"),
+    h("div", { class: "row wrap" }, h("button", { class: "pri", onclick: () => fileIn.click() }, "📷 Tirar foto"), h("button", { onclick: () => galIn.click() }, "🖼️ Galeria"), fileIn, galIn), photos,
+    hlList, hlT, h("div", { class: "row", style: "margin-top:8px" }, hlP, h("button", { class: "grow", onclick: () => { const t = hlT.value.trim(); if (!t) return; (b.captar = b.captar || []).push({ t, p: hlP.value }); hlT.value = ""; hlP.value = ""; touch(b); drawHl(); upd(b); } }, "Adicionar grifo"))));
+
+  // 2 Categorizar
+  const tags = h("div", {}); const drawTags = () => tags.replaceChildren(...(b.cats || []).map((c, i) => h("span", { class: "chip btn", onclick: () => { b.cats.splice(i, 1); touch(b); drawTags(); upd(b); } }, c + " ✕")));
+  drawTags();
+  const tagIn = h("input", { placeholder: "Nova tag (ex.: foco, liderança, hábitos)" });
+  const addTag = () => { const t = tagIn.value.trim().toLowerCase(); if (!t) return; b.cats = b.cats || []; if (!b.cats.includes(t)) b.cats.push(t); tagIn.value = ""; touch(b); drawTags(); upd(b); };
+  tagIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } });
+  const sug = h("div", {}, (P().temas || []).map(t => h("span", { class: "chip btn", onclick: () => { tagIn.value = t; addTag(); } }, "+ " + t)));
+  box.append(step(b, 1, "Categorizar", helpBox("categorizar"), tags, sug, h("div", { class: "row" }, tagIn, h("button", { onclick: addTag }, "Adicionar"))));
+
+  // 3 Condensar
+  box.append(step(b, 2, "Condensar", helpBox("condensar"),
+    field(b, "frase", "O livro em uma frase", "textarea", { style: "min-height:60px" }), field(b, "ideias", "3 ideias que valem guardar", "textarea")));
+
+  // 4 Concretizar
+  box.append(step(b, 3, "Concretizar", helpBox("concretizar"),
+    field(b, "acao", "Ação concreta", "textarea", { placeholder: "Escreva a ação aqui", style: "min-height:60px" }),
+    field(b, "quando", "Quando", "input", { placeholder: "Ex.: segunda, 9h" }),
+    h("label", { class: "check", style: "color:var(--ink);font-size:15px;margin-top:8px" }, h("input", { type: "checkbox", checked: b.feito ? true : false, onchange: e => { b.feito = e.target.checked; touch(b); } }), "Já coloquei em prática")));
+
+  // 5 Catalogar
+  const stars = h("div", { class: "stars" }); const drawStars = () => stars.replaceChildren(...[1, 2, 3, 4, 5].map(n => h("button", { class: n <= (b.nota || 0) ? "on" : "", onclick: () => { b.nota = b.nota === n ? 0 : n; touch(b); drawStars(); } }, "★")));
+  drawStars();
+  box.append(step(b, 4, "Catalogar", helpBox("catalogar"),
+    h("label", {}, "Terminei em"), h("input", { type: "date", value: b.fim || "", onchange: e => { b.fim = e.target.value; touch(b); upd(b); } }), h("label", {}, "Nota"), stars));
+
+  // excluir
+  let armed = false;
+  const del = h("button", { class: "danger", style: "margin-top:8px", onclick: async () => {
+    if (!armed) { armed = true; del.textContent = "Toque de novo para excluir"; setTimeout(() => { armed = false; del.textContent = "Excluir livro"; }, 4000); return; }
+    delete L()[b.id]; clearTimeout(timers[kB(b)]); delete timers[kB(b)];
+    if (mode === "cloud") await removeDoc(kB(b)); else lsSave();
+    openId = null; render(); toast("Livro excluído");
+  } }, "Excluir livro");
+  box.append(del);
+  return box;
+}
+function lightbox(b, i) {
+  const o = h("div", { class: "lb", onclick: () => o.remove() }, h("img", { src: pUrl(b.photos[i]), alt: "" }));
+  const rm = h("button", { class: "danger", style: "position:absolute;bottom:24px", onclick: e => { e.stopPropagation(); b.photos.splice(i, 1); touch(b); o.remove(); render(); } }, "Remover foto");
+  o.append(rm); document.body.append(o);
+}
+
+/* ---------- meta e backup ---------- */
+function meta() {
+  const p = P(), box = h("div", {}, h("h1", {}, "Minha meta"), helpBox("meta"));
+  const bind = (key, label, tag, extra) => h("div", {}, h("label", {}, label), h(tag, { value: p[key] || "", ...extra, oninput: e => { p[key] = e.target.value; savePf(); } }));
+  const mes = today().slice(0, 7), lidos = Object.values(L()).filter(b => (b.fim || "").startsWith(mes)).length, alvo = Number(p.metaMes) || 0;
+  const prog = h("div", { class: "card" }, h("h3", {}, "Este mês"), h("div", {}, lidos + (alvo ? " de " + alvo : "") + " livro(s) concluído(s)"), alvo ? h("div", { class: "bar", style: "margin-top:8px" }, h("i", { style: "width:" + Math.min(100, lidos / alvo * 100) + "%" })) : null);
+  const temas = h("div", {}); const drawT = () => temas.replaceChildren(...(p.temas || []).map((t, i) => h("span", { class: "chip btn", onclick: () => { p.temas.splice(i, 1); savePf(); drawT(); } }, t + " ✕")));
+  drawT();
+  const tIn = h("input", { placeholder: "Novo tema (ex.: animais, história, liderança)" });
+  const addT = () => { const t = tIn.value.trim().toLowerCase(); if (!t) return; p.temas = p.temas || []; if (!p.temas.includes(t)) p.temas.push(t); tIn.value = ""; savePf(); drawT(); };
+  tIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addT(); } });
+  box.append(prog, h("div", { class: "card" }, bind("why", "Por que eu quero ler mais?", "textarea", { placeholder: "Meu objetivo com a leitura" }),
+    h("label", {}, "Temas que quero desenvolver"), temas, h("div", { class: "row" }, tIn, h("button", { onclick: addT }, "Adicionar")),
+    bind("metaMes", "Livros por mês", "input", { type: "number", min: 0 }), bind("minDia", "Minutos de leitura por dia", "input", { type: "number", min: 1, placeholder: "10" })));
+  // backup
+  const ta = h("textarea", { style: "min-height:110px;font-size:12px", placeholder: "Cole aqui um backup para importar" });
+  const exp = () => { const x = clone(PF()); ta.value = JSON.stringify(x); ta.select(); };
+  box.append(h("div", { class: "card" }, h("h3", {}, "Backup"), h("div", { class: "sync" }, mode === "cloud" ? "Seus dados ficam na sua conta e aparecem em qualquer aparelho em que você abrir esta página." : "Seus dados estão salvos só neste aparelho. Faça backup de vez em quando."),
+    ta, h("div", { class: "row wrap", style: "margin-top:8px" },
+      h("button", { onclick: exp }, "Gerar backup"),
+      h("button", { onclick: async () => { if (!ta.value) exp(); try { await navigator.clipboard.writeText(ta.value); toast("Copiado"); } catch (e) { ta.select(); toast("Copie manualmente"); } } }, "Copiar"),
+      h("button", { onclick: () => { try { const x = JSON.parse(ta.value); if (!x.livros) throw 0; Object.assign(P(), x.perfil || {}); Object.entries(x.livros).forEach(([i, b]) => { L()[i] = b; }); if (mode === "cloud") saveAllCloud(); else lsSave(); toast("Backup importado"); render(); } catch (e) { toast("Backup inválido"); } } }, "Importar"))));
+  return box;
+}
+init();
+</script>
+</body>
+</html>
