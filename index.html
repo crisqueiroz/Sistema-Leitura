@@ -110,6 +110,21 @@ button.sm{min-height:36px}
 .pitch{display:grid;gap:8px;margin:0 0 16px}.pitch div{display:flex;gap:12px;align-items:center;background:var(--card);box-shadow:var(--sh);border-radius:16px;padding:12px 14px;font-size:15px}.pitch b{font-size:24px}
 .celeb{align-items:center;overflow:hidden}.cele{max-width:360px;width:100%;margin:auto;text-align:center;padding:26px 20px;border-radius:28px;position:relative}
 .cele .flame{font-size:72px;line-height:1;animation:pop .6s cubic-bezier(.2,1.6,.4,1)}.cele .bign{font-size:84px;font-weight:800;line-height:1;letter-spacing:-3px;color:var(--acc);animation:pop .6s .1s both cubic-bezier(.2,1.6,.4,1)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:10px;text-align:center}
+.cal i{font-style:normal;font-size:11px;color:var(--mute);font-weight:700}
+.cal button{width:100%;max-width:40px;min-width:0;margin:0 auto;aspect-ratio:1;border:0;border-radius:50%;background:transparent;color:var(--ink);font-size:14px;padding:0;position:relative}
+.cal button.d{background:linear-gradient(145deg,var(--g1),var(--g2));color:#fff;font-weight:700}
+.cal button.p{background:var(--line);color:var(--ink)}
+.cal button.t{outline:2px solid var(--acc);outline-offset:1px}
+.cal button.f{opacity:.3}
+.cal button.sel{box-shadow:0 0 0 3px rgba(194,73,29,.35)}
+.calh{display:flex;align-items:center;gap:6px}
+.calh .grow{text-align:center;font-weight:700}
+.calh button{border:0;background:var(--line);color:var(--ink);border-radius:10px;width:38px;height:38px;font-size:18px}
+.calh button:disabled{opacity:.3}
+.cstats{display:flex;gap:8px;margin-top:12px}
+.cstats div{flex:1;background:var(--line);border-radius:12px;padding:8px 4px;text-align:center;font-size:12px;color:var(--mute)}
+.cstats b{display:block;font-size:20px;color:var(--ink)}
 @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 .cf{position:fixed;top:-20px;width:10px;height:16px;border-radius:2px;animation:fall linear forwards;z-index:11;pointer-events:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
@@ -483,6 +498,32 @@ function primeiroLivroCard() {
   return h("div", { class: "card" }, h("h3", {}, "📚 Qual livro você está lendo?"), h("p", { class: "sub", style: "margin:0 0 10px" }, "Adicione o primeiro livro para acompanhar seu tempo e guardar o que aprender."), inp, h("button", { class: "pri", style: "width:100%;margin-top:10px", onclick: go }, "Começar este livro"));
 }
 let ajOpen = false, atOpen = false;
+let calMes = null, calDia = null;
+function calendarioCard() {
+  const hoje0 = today(), atual = hoje0.slice(0, 7); if (!calMes) calMes = atual;
+  const [Y, M] = calMes.split("-").map(Number), ndias = new Date(Y, M, 0).getDate(), pri = new Date(Y, M - 1, 1).getDay();
+  const shift = d => { const dt = new Date(Y, M - 1 + d, 1); calMes = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0"); calDia = null; render(); };
+  const nome = new Date(Y, M - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const key = d => calMes + "-" + String(d).padStart(2, "0");
+  let dias = 0, mins = 0, best = 0, run = 0;
+  for (let d = 1; d <= ndias; d++) { const k = key(d); mins += habit()[k] || 0; if (dayDone(k)) { dias++; run++; best = Math.max(best, run); } else run = 0; }
+  const livrosMes = Object.values(L()).filter(b => b.status === "lido" && (b.fim || "").startsWith(calMes)).length;
+  const grid = h("div", { class: "cal" }, ..."DSTQQSS".split("").map(c => h("i", {}, c)), ...Array.from({ length: pri }, () => h("span")));
+  for (let d = 1; d <= ndias; d++) {
+    const k = key(d), m = habit()[k] || 0, fut = k > hoje0;
+    grid.append(h("button", { class: (dayDone(k) ? "d " : m > 0 ? "p " : "") + (k === hoje0 ? "t " : "") + (fut ? "f " : "") + (calDia === k ? "sel" : ""), disabled: fut ? true : false, onclick: () => { calDia = calDia === k ? null : k; render(); } }, String(d)));
+  }
+  const card = h("div", { class: "card" },
+    h("div", { class: "calh" }, h("button", { "aria-label": "Mês anterior", onclick: () => shift(-1) }, "‹"), h("div", { class: "grow" }, nome.charAt(0).toUpperCase() + nome.slice(1)),
+      h("button", { "aria-label": "Próximo mês", disabled: calMes >= atual ? true : false, onclick: () => shift(1) }, "›")),
+    h("div", { class: "row", style: "gap:8px;margin-top:8px;justify-content:center" },
+      calMes !== atual ? h("button", { class: "hlink", style: "color:var(--acc)", onclick: () => { calMes = atual; calDia = null; render(); } }, "Voltar para este mês") : null,
+      h("label", { class: "hlink", style: "color:var(--acc);margin:0" }, "Escolher outro mês ", h("input", { type: "month", value: calMes, max: atual, style: "width:auto;margin-left:4px", onchange: e => { if (e.target.value) { calMes = e.target.value > atual ? atual : e.target.value; calDia = null; render(); } } }))),
+    grid,
+    calDia && calDia.startsWith(calMes) ? h("div", { class: "sub", style: "text-align:center;margin:10px 0 0" }, new Date(calDia + "T12:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "long" }) + ": " + ((habit()[calDia] || 0) ? (habit()[calDia] + " min de leitura") + (dayDone(calDia) ? " ✓" : "") : "sem leitura")) : null,
+    h("div", { class: "cstats" }, h("div", {}, h("b", {}, String(dias)), "dias lidos"), h("div", {}, h("b", {}, String(mins)), "minutos"), h("div", {}, h("b", {}, String(best)), "melhor sequência"), h("div", {}, h("b", {}, String(livrosMes)), livrosMes === 1 ? "livro lido" : "livros lidos")));
+  return h("div", {}, h("h3", { style: "margin:4px 2px 8px" }, "📅 Meu mês"), card);
+}
 function hoje() {
   const box = h("div", {}), st = streak(), done = dayDone(today());
   const lendo = Object.values(L()).filter(b => b.status === "lendo"), cur = L()[sessaoId()];
@@ -519,6 +560,7 @@ function hoje() {
       st >= 1 && prox && !marco ? h("div", { class: "bar", style: "margin:10px 0" }, h("i", { style: "width:" + Math.round((st - prev) / (prox - prev) * 100) + "%" })) : h("div", { style: "height:10px" }),
       h("button", { class: "pri", style: "width:100%", onclick: cardModal }, "📸 Compartilhar no Instagram")));
   }
+  if (temLivros || temLeitura) box.append(calendarioCard());
   if (lendo.length) {
     const rd = h("div", {}, h("h3", { style: "margin:4px 2px 8px" }, "Lendo agora"));
     lendo.forEach(b => rd.append(h("div", { class: "card book", onclick: () => { openId = b.id; render(); } }, thumb(b),
