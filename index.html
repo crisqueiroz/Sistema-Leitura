@@ -2,11 +2,23 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#C2491D">
+<meta name="description" content="Leia um pouco todo dia, guarde o que aprendeu e compartilhe sua ofensiva de leitura.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Segundo Cérebro">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Segundo Cérebro · Aprenda lendo">
+<meta property="og:description" content="Leia um pouco todo dia, guarde o que aprendeu e compartilhe sua ofensiva de leitura.">
+<meta property="og:image" content="https://crisqueiroz.github.io/Sistema-Leitura/og.jpg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Segundo Cérebro · Aprenda lendo</title>
 <style>
-:root{--bg:#faf6ef;--card:#fff;--ink:#2b2622;--mute:#7a6f64;--line:#e8dfd2;--acc:#b4532a;--acc2:#f3e3d6;--ok:#3d7a4f;--ok2:#e0f0e4;--r:16px}
-@media (prefers-color-scheme:dark){:root{--bg:#1d1a17;--card:#27231f;--ink:#f1ebe3;--mute:#a79c90;--line:#3a342d;--acc:#e58a5c;--acc2:#3a2a20;--ok:#7cc38f;--ok2:#1f3326}}
+:root{--bg:#FBF7F1;--card:#fff;--ink:#241E1A;--mute:#6F645A;--line:#EDE4D8;--acc:#C2491D;--acc2:#F8E6DA;--ok:#2F8F5B;--ok2:#E1F3E8;--r:20px;--sh:0 1px 2px rgba(36,30,26,.05),0 10px 28px rgba(36,30,26,.07);--navbg:rgba(255,255,255,.88);--g1:#F4924F;--g2:#C2491D;--g3:#8A2E10}
+@media (prefers-color-scheme:dark){:root{--bg:#16120F;--card:#221D19;--ink:#F4EEE6;--mute:#ADA195;--line:#3A332C;--acc:#F0895B;--acc2:#3A2A20;--ok:#7CC38F;--ok2:#1F3326;--sh:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.35);--navbg:rgba(34,29,25,.86)}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 #app{max-width:640px;margin:0 auto;padding:16px 16px 96px}
@@ -62,6 +74,45 @@ label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
 .chart i{display:block;background:var(--acc);border-radius:6px 6px 0 0;min-height:2px;margin-bottom:2px}
 .insight{border-left:3px solid var(--ok);padding:4px 0 4px 10px;margin:8px 0;font-size:15px}
 .modal{position:fixed;inset:0;background:#000b;display:flex;align-items:flex-start;justify-content:center;z-index:10;overflow:auto;padding:16px}
+/* ---- redesign ---- */
+html,body{font-family:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+h1{letter-spacing:-.5px}
+.card{border:0;box-shadow:var(--sh)}
+button{min-height:44px;transition:transform .08s}button:active{transform:scale(.97)}
+button.pri{background:linear-gradient(135deg,var(--g1),var(--g2));border:0;box-shadow:0 6px 16px rgba(194,73,29,.28)}
+button.sm{min-height:36px}
+.chip.btn{min-height:40px;padding:9px 14px;display:inline-flex;align-items:center}
+.nav{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);background:var(--navbg)}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:56px;font-size:12px;border-radius:14px}
+.nav svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav button.on svg{stroke-width:2.5}
+.hero{background:linear-gradient(150deg,var(--g1),var(--g2) 55%,var(--g3));color:#fff;border-radius:28px;padding:22px 18px 14px;margin:0 0 14px;box-shadow:0 14px 34px rgba(194,73,29,.32);position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;right:-70px;top:-70px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.12)}
+.hero>*{position:relative}
+.hrow{display:flex;align-items:center;gap:14px}
+.flm{font-size:60px;line-height:1}
+.hnum{font-size:68px;font-weight:800;line-height:.95;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+.hlab{font-size:16px;font-weight:600;opacity:.92}
+.hmsg{margin:12px 0 14px;font-size:15px;opacity:.96}
+.hero .dots em{background:rgba(255,255,255,.26)}.hero .dots .d em{background:#fff}.hero .dots span{color:rgba(255,255,255,.85)}.hero .dots .t em{outline:2px solid #fff;outline-offset:1px}
+.cta{width:100%;min-height:58px;border:0;border-radius:18px;background:#fff;color:var(--g2);font-size:19px;font-weight:800;box-shadow:0 8px 18px rgba(0,0,0,.2);margin-top:14px}
+.hlink{background:transparent;border:0;color:#fff;opacity:.92;text-decoration:underline;min-height:44px;padding:6px 12px;font-size:14px}
+.hbook{margin-top:14px;font-size:14px;opacity:.96;display:flex;gap:8px;align-items:center}
+.hsel{background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:12px;padding:8px 10px;font-weight:600}.hsel option{color:#241E1A}
+.ringwrap{position:relative;width:200px;height:200px;margin:10px auto 0}.ringwrap svg{transform:rotate(-90deg)}
+.ringwrap .clk{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:800;font-variant-numeric:tabular-nums}
+.glow{outline:2px solid var(--acc)}
+.fold>summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.fold>summary::-webkit-details-marker{display:none}.fold>summary:after{content:"›";font-size:22px;color:var(--mute);transform:rotate(90deg);transition:transform .15s}
+.fold[open]>summary:after{transform:rotate(-90deg)}.fold>summary+*{margin-top:12px}
+.logo{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,var(--g1),var(--g3));display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 8px 20px rgba(194,73,29,.35);flex:none}
+.pitch{display:grid;gap:8px;margin:0 0 16px}.pitch div{display:flex;gap:12px;align-items:center;background:var(--card);box-shadow:var(--sh);border-radius:16px;padding:12px 14px;font-size:15px}.pitch b{font-size:24px}
+.celeb{align-items:center;overflow:hidden}.cele{max-width:360px;width:100%;margin:auto;text-align:center;padding:26px 20px;border-radius:28px;position:relative}
+.cele .flame{font-size:72px;line-height:1;animation:pop .6s cubic-bezier(.2,1.6,.4,1)}.cele .bign{font-size:84px;font-weight:800;line-height:1;letter-spacing:-3px;color:var(--acc);animation:pop .6s .1s both cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.cf{position:fixed;top:-20px;width:10px;height:16px;border-radius:2px;animation:fall linear forwards;z-index:11;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){.cf{display:none}.cele .flame,.cele .bign{animation:none}}
 </style>
 </head>
 <body>
@@ -86,6 +137,13 @@ function h(t, a, ...c) {
   return e;
 }
 const clone = o => JSON.parse(JSON.stringify(o));
+const svg = str => { const t = document.createElement("template"); t.innerHTML = str.trim(); return t.content.firstChild; };
+const ICONS = {
+  hoje: '<svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+  livros: '<svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  metricas: '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
+  meta: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>'
+};
 const today = () => new Date().toLocaleDateString("sv");
 const dayOffset = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString("sv"); };
 const uid36 = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
@@ -155,7 +213,13 @@ function erroAuth(e) {
   if (m.includes("valid email") || m.includes("invalid email")) return "Esse e-mail não parece válido.";
   return "Não deu certo. Tente de novo.";
 }
-function brand() { return [h("h1", { style: "font-size:28px" }, "🧠 Segundo Cérebro"), h("p", { class: "sub", style: "font-size:16px;margin-bottom:22px" }, "Aprenda lendo")]; }
+function brand() {
+  return h("div", { class: "row", style: "gap:14px;margin-bottom:18px" }, h("div", { class: "logo" }, "🧠"),
+    h("div", {}, h("h1", { style: "font-size:26px;margin:0" }, "Segundo Cérebro"), h("div", { class: "sub", style: "margin:2px 0 0;font-size:15px" }, "Aprenda lendo")));
+}
+function pitch() {
+  return h("div", { class: "pitch" }, [["🔥", "Leia um pouco todo dia e acompanhe sua sequência"], ["🧠", "Guarde o que aprendeu em 5 passos simples"], ["📸", "Compartilhe sua conquista no Instagram"]].map(([e, t]) => h("div", {}, h("b", {}, e), t)));
+}
 function authView() {
   const em = h("input", { type: "email", placeholder: "seu e-mail", autocomplete: "email", value: authEmail });
   const pw = h("input", { type: "password", placeholder: "senha (mínimo 6 caracteres)", autocomplete: authMode === "criar" ? "new-password" : "current-password" });
@@ -181,7 +245,7 @@ function authView() {
   const btn = h("button", { class: "pri", style: "width:100%;margin-top:14px", onclick: go }, titulo);
   pw.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
   const troca = (m, t) => h("button", { class: "ghost sm", onclick: () => { authEmail = em.value.trim(); authMode = m; authMsg = ""; render(); } }, t);
-  return h("div", {}, brand(), h("div", { class: "card" }, h("h2", {}, authMode === "criar" ? "Criar conta" : authMode === "esqueci" ? "Recuperar senha" : "Entrar"),
+  return h("div", {}, brand(), pitch(), h("div", { class: "card" }, h("h2", {}, authMode === "criar" ? "Criar conta" : authMode === "esqueci" ? "Recuperar senha" : "Entrar"),
     h("label", {}, "E-mail"), em, authMode === "esqueci" ? null : [h("label", {}, "Senha"), pw], btn,
     authMsg ? h("p", { class: "sub", style: "margin:12px 0 0;color:var(--ink)" }, authMsg) : null,
     h("div", { class: "row wrap", style: "margin-top:10px" }, authMode !== "entrar" ? troca("entrar", "Já tenho conta") : null, authMode !== "criar" ? troca("criar", "Criar conta") : null, authMode === "entrar" ? troca("esqueci", "Esqueci a senha") : null)),
@@ -245,6 +309,7 @@ async function init() {
     });
   }
   route();
+  if ("serviceWorker" in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
 
@@ -298,7 +363,7 @@ function helpBox(k) {
 }
 
 /* ---------- navegação ---------- */
-const TABS = [["hoje", "☀️", "Hoje"], ["livros", "📚", "Livros"], ["metricas", "📊", "Métricas"], ["meta", "🎯", "Meta"]];
+const TABS = [["hoje", "hoje", "Hoje"], ["livros", "livros", "Livros"], ["metricas", "metricas", "Métricas"], ["meta", "meta", "Meta"]];
 let view = "hoje", openId = null, q = "", filtro = "todos";
 function route() {
   const hsh = location.hash.slice(1);
@@ -329,7 +394,7 @@ function escolher() {
     const g = h("div", { class: "who" });
     ids.forEach(id => { const p = PEOPLE[id]; g.append(h("button", { onclick: () => { atual = id; PF(id); try { localStorage.setItem(LSA, id); } catch (e) {} openId = null; render(); } }, h("b", {}, p.e), p.n)); });
     box.append(h("h2", {}, "Quem vai ler agora?"), g, h("div", { style: "height:12px" }));
-  } else box.append(h("h2", {}, "Vamos começar"), h("p", { class: "sub" }, "Crie o perfil de quem vai ler. Depois você pode adicionar outras pessoas, como filhos e familiares."));
+  } else box.append(pitch(), h("h2", {}, "Vamos começar"), h("p", { class: "sub" }, "Crie o perfil de quem vai ler. Depois você pode adicionar outras pessoas, como filhos e familiares."));
   box.append(novoPerfil(!ids.length));
   if (CLOUD && session) box.append(h("button", { class: "ghost sm", style: "margin-top:12px", onclick: () => sb.auth.signOut() }, "Sair da conta (" + session.user.email + ")"));
   return box;
@@ -341,7 +406,7 @@ function topbar() {
 }
 function soft() { const a = document.activeElement; if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return; render(); }
 function render() {
-  const nav = $("#nav"); nav.replaceChildren(...TABS.map(([k, i, l]) => h("button", { class: view === k && !openId ? "on" : "", onclick: () => go(k) }, h("b", {}, i), l)));
+  const nav = $("#nav"); nav.replaceChildren(...TABS.map(([k, i, l]) => h("button", { class: view === k && !openId ? "on" : "", onclick: () => go(k), "aria-label": l }, svg(ICONS[i]), h("span", {}, l))));
   const app = $("#app"); app.replaceChildren();
   const gate = gateView(); if (gate) { nav.replaceChildren(); app.append(gate); return; }
   if (!atual) { nav.replaceChildren(); app.append(escolher()); return; }
@@ -375,17 +440,25 @@ function undoToday() {
   Object.values(L()).forEach(b => { const t = b.log && b.log[today()]; if (t) { b.min = Math.max(0, (b.min || 0) - t); delete b.log[today()]; touch(b); } });
 }
 function setMin(n) { if (tEnd) return; P().minDia = n; if (!(habit()[today()] > 0)) delete goals()[today()]; savePf(); render(); }
-let tEnd = null, tInt = null;
+let tEnd = null, tInt = null, tTotal = 0, wl = null;
+const RING = 2 * Math.PI * 88;
+async function wakeOn() { try { if (navigator.wakeLock) wl = await navigator.wakeLock.request("screen"); } catch (e) {} }
+function wakeOff() { try { wl && wl.release(); } catch (e) {} wl = null; }
 function startTimer() {
-  tEnd = Date.now() + minDia() * 60000;
-  clearInterval(tInt);
+  tTotal = minDia() * 60000; tEnd = Date.now() + tTotal; clearInterval(tInt); wakeOn();
   tInt = setInterval(() => {
-    const el = $("#clock"); const left = Math.max(0, tEnd - Date.now());
+    const left = Math.max(0, tEnd - Date.now()), el = $("#clock"), rg = $("#ringc");
     if (el) el.textContent = fmt(left);
-    if (left <= 0) { clearInterval(tInt); tEnd = null; logMinutes(minDia()); try { navigator.vibrate && navigator.vibrate(300); } catch (e) {} toast("Leitura do dia concluída 🎉"); render(); }
-  }, 500); render();
+    if (rg) rg.style.strokeDashoffset = String(RING * (1 - (tTotal - left) / tTotal));
+    if (left <= 0) { clearInterval(tInt); tEnd = null; wakeOff(); finishRead(Math.round(tTotal / 60000)); }
+  }, 250); render();
 }
-function stopTimer() { clearInterval(tInt); tEnd = null; render(); }
+function stopTimer() { clearInterval(tInt); tEnd = null; wakeOff(); render(); }
+function finishRead(m) {
+  const was = dayDone(today()); logMinutes(m);
+  try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) {}
+  render(); if (!was && dayDone(today())) celebrate(); else toast("Leitura registrada 🎉");
+}
 const fmt = ms => { const s = Math.ceil(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
 
 function tempoChips() {
@@ -399,50 +472,80 @@ const CHECKS = {
   teen: ["Celular longe ou no modo foco", "Sei o que quero tirar deste capítulo", "Lugar confortável e com luz", "Marcador ou caneta à mão"],
   adulto: ["Celular longe ou no modo foco", "Sei o que quero tirar deste capítulo", "Lugar confortável e com luz", "Marcador ou caneta à mão"]
 };
+function primeiroLivroCard() {
+  const inp = h("input", { placeholder: "Ex.: Hábitos Atômicos", maxlength: 80 });
+  const go = () => { const t = inp.value.trim(); if (!t) return toast("Digite o nome do livro"); addBook(t, false); render(); toast("Livro adicionado. Bora ler!"); };
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  return h("div", { class: "card" }, h("h3", {}, "📚 Qual livro você está lendo?"), h("p", { class: "sub", style: "margin:0 0 10px" }, "Adicione o primeiro livro para acompanhar seu tempo e guardar o que aprender."), inp, h("button", { class: "pri", style: "width:100%;margin-top:10px", onclick: go }, "Começar este livro"));
+}
+let ajOpen = false, atOpen = false;
 function hoje() {
-  const box = h("div", {});
-  const st = streak(), done = dayDone(today());
-  box.append(h("h1", {}, "Hoje"), h("p", { class: "sub" }, st ? `${st} dia${st > 1 ? "s" : ""} seguido${st > 1 ? "s" : ""}. Continue assim.` : "Comece com " + minDia() + " minutos."));
-  if (st >= 1) {
-    const prox = SHARE_MARCOS.find(m => m > st);
-    box.append(h("div", { class: "card row wrap" },
-      h("div", { class: "grow" }, SHARE_MARCOS.includes(st) ? h("b", {}, "🎉 Marco de " + st + " dias! Compartilhe sua conquista.") : h("span", { class: "sub", style: "margin:0" }, prox ? "Faltam " + (prox - st) + " dia(s) para o marco de " + prox + " dias." : "Você passou de todos os marcos. Parabéns!")),
-      h("button", { class: SHARE_MARCOS.includes(st) ? "pri" : "", onclick: cardModal }, "📸 Cartão para o Instagram")));
-  }
-  // semana
+  const box = h("div", {}), st = streak(), done = dayDone(today());
+  const lendo = Object.values(L()).filter(b => b.status === "lendo"), cur = L()[sessaoId()];
   const dots = h("div", { class: "dots" });
   for (let i = -6; i <= 0; i++) { const k = dayOffset(i), d = new Date(k + "T12:00:00"); dots.append(h("span", { class: (dayDone(k) ? "d " : "") + (i === 0 ? "t" : "") }, h("em", {}), "DSTQQSS"[d.getDay()])); }
-  // timer
-  const timerCard = h("div", { class: "card" }, h("h2", {}, "Ritual de " + minDia() + " minutos"), helpBox("ritual"), tempoChips(), sessaoSel(), dots,
-    h("div", { class: "big", id: "clock" }, tEnd ? fmt(Math.max(0, tEnd - Date.now())) : done ? "✓ feito" : fmt(minDia() * 60000)),
-    h("div", { class: "row" },
-      tEnd ? h("button", { class: "grow", onclick: stopTimer }, "Cancelar") : h("button", { class: "pri grow", onclick: startTimer }, done ? "Ler mais" : "Começar a ler"),
-      !tEnd && !done ? h("button", { onclick: () => { logMinutes(minDia()); render(); } }, "Já li hoje") : null),
-    !tEnd && (habit()[today()] || 0) > 0 ? h("button", { class: "ghost sm", style: "margin-top:8px", onclick: () => { undoToday(); toast("Hoje foi desfeito"); render(); } }, "↩ Desfazer hoje") : null);
-  // atenção
+  const hero = h("div", { class: "hero" },
+    h("div", { class: "hrow" }, h("div", { class: "flm" }, "🔥"), h("div", {}, h("div", { class: "hnum" }, String(st)), h("div", { class: "hlab" }, st === 1 ? "dia seguido" : "dias seguidos"))),
+    h("div", { class: "hmsg" }, done ? "Hoje está feito ✓ Volte amanhã para chegar a " + (st + 1) + "." : st ? "Leia " + minDia() + " min hoje e chegue a " + (st + 1) + " dias." : "Comece hoje com " + minDia() + " minutos."),
+    dots);
+  if (tEnd) {
+    const left = Math.max(0, tEnd - Date.now());
+    hero.append(h("div", { class: "ringwrap" },
+      svg(`<svg width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="12"/><circle id="ringc" cx="100" cy="100" r="88" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-dasharray="${RING}" style="stroke-dashoffset:${RING * (1 - (tTotal - left) / tTotal)}"/></svg>`),
+      h("div", { class: "clk", id: "clock" }, fmt(left))),
+      h("button", { class: "hlink", style: "display:block;margin:8px auto 0", onclick: stopTimer }, "Cancelar"));
+  } else {
+    if (lendo.length > 1) hero.append(h("div", { class: "hbook" }, "📖", h("select", { class: "hsel", onchange: e => { P().livroSessao = e.target.value; savePf(); } }, lendo.map(b => h("option", { value: b.id, selected: cur && b.id === cur.id ? true : false }, b.title || "Sem título")))));
+    else if (cur) hero.append(h("div", { class: "hbook" }, "📖 " + (cur.title || "Sem título")));
+    hero.append(h("button", { class: "cta", onclick: startTimer }, done ? "Ler mais" : "▶  Ler " + minDia() + " min"));
+    const sec = h("div", { class: "row", style: "justify-content:center;gap:4px" });
+    if (!done) sec.append(h("button", { class: "hlink", onclick: () => finishRead(minDia()) }, "Já li hoje"));
+    if ((habit()[today()] || 0) > 0) sec.append(h("button", { class: "hlink", onclick: () => { undoToday(); toast("Hoje foi desfeito"); render(); } }, "Desfazer hoje"));
+    hero.append(sec);
+  }
+  box.append(hero);
+  const temLivros = Object.keys(L()).length > 0, temLeitura = Object.keys(habit()).length > 0;
+  if (!temLivros) box.append(primeiroLivroCard());
+  // compartilhar / marcos
+  if (temLivros || temLeitura) {
+    const marco = SHARE_MARCOS.includes(st), prox = SHARE_MARCOS.find(m => m > st), prev = [0, ...SHARE_MARCOS].filter(m => m <= st).pop();
+    box.append(h("div", { class: "card" + (marco ? " glow" : "") },
+      h("b", {}, st < 1 ? "📸 Poste sua leitura de hoje" : marco ? "🏆 Marco de " + st + " dias!" : prox ? "Próximo marco: " + prox + " dias" : "Você passou de todos os marcos!"),
+      h("div", { class: "sub", style: "margin:2px 0 0" }, st < 1 ? "Você pode compartilhar todo dia, com ou sem sequência, com uma frase para inspirar." : marco ? "Mostre sua conquista para os amigos." : prox ? "Faltam " + (prox - st) + (prox - st === 1 ? " dia" : " dias") + " para o próximo marco." : "Compartilhe sua ofensiva."),
+      st >= 1 && prox && !marco ? h("div", { class: "bar", style: "margin:10px 0" }, h("i", { style: "width:" + Math.round((st - prev) / (prox - prev) * 100) + "%" })) : h("div", { style: "height:10px" }),
+      h("button", { class: "pri", style: "width:100%", onclick: cardModal }, "📸 Compartilhar no Instagram")));
+  }
+  if (lendo.length) {
+    const rd = h("div", {}, h("h3", { style: "margin:4px 2px 8px" }, "Lendo agora"));
+    lendo.forEach(b => rd.append(h("div", { class: "card book", onclick: () => { openId = b.id; render(); } }, thumb(b),
+      h("div", { class: "grow" }, h("b", {}, b.title || "Sem título"), h("div", { class: "sub", style: "margin:0" }, passos(b) + " de 5 passos"), h("div", { class: "bar", style: "margin-top:6px" }, h("i", { style: "width:" + passos(b) * 20 + "%" }))))));
+    box.append(rd);
+  }
+  // ajustes
   const c = P().check && P().check.d === today() ? P().check : (P().check = { d: today(), on: [] });
-  const att = h("div", { class: "card" }, h("h3", {}, "Antes de abrir o livro"), helpBox("atencao"));
+  const att = h("details", { class: "card fold", open: atOpen ? true : false, ontoggle: e => { atOpen = e.target.open; } }, h("summary", {}, "🎯 Antes de abrir o livro · " + c.on.length + "/" + CHECKS[faixa()].length), helpBox("atencao"));
   CHECKS[faixa()].forEach((t, i) => att.append(h("label", { class: "check", style: "margin:0;color:var(--ink);font-size:15px" },
     h("input", { type: "checkbox", checked: c.on.includes(i) ? true : false, onchange: e => { c.on = e.target.checked ? [...new Set([...c.on, i])] : c.on.filter(x => x !== i); savePf(); } }), t)));
-  // lendo
-  const lendo = Object.values(L()).filter(b => b.status === "lendo");
-  const rd = h("div", { class: "card" }, h("h3", {}, "Lendo agora"));
-  if (!lendo.length) rd.append(h("p", { class: "sub", style: "margin:0" }, "Nenhum livro em leitura. Adicione um na aba Livros."));
-  lendo.forEach(b => rd.append(h("div", { class: "book", style: "padding:6px 0", onclick: () => { openId = b.id; render(); } }, thumb(b), h("div", { class: "grow" }, h("b", {}, b.title), h("div", { class: "sub", style: "margin:0" }, passos(b) + " de 5 passos")))));
-  box.append(timerCard, att, rd);
+  box.append(att, h("details", { class: "card fold", open: ajOpen ? true : false, ontoggle: e => { ajOpen = e.target.open; } }, h("summary", {}, "⚙️ Tempo de leitura por dia"), helpBox("ritual"), tempoChips()));
   return box;
 }
 
 /* ---------- livros ---------- */
 const STATUS = { quero: "Quero ler", lendo: "Lendo", lido: "Lido" };
-const thumb = b => b.photos && b.photos[0] ? h("img", { class: "thumb", src: pUrl(b.photos[0]), alt: "" }) : h("div", { class: "thumb" }, "📖");
+const CAPAS = [["#F4924F", "#C2491D"], ["#4D96FF", "#2B5CB8"], ["#06B58A", "#067A5C"], ["#B07CE8", "#6D3FB0"], ["#FF6B9A", "#C23868"], ["#F2B134", "#B87A0A"]];
+function capa(b) {
+  const t = (b.title || "?").trim(), c = CAPAS[[...t].reduce((a, ch) => a + ch.charCodeAt(0), 0) % CAPAS.length];
+  return h("div", { class: "thumb", style: `background:linear-gradient(145deg,${c[0]},${c[1]});color:#fff;font-weight:800;font-size:22px` }, (t[0] || "?").toUpperCase());
+}
+const thumb = b => b.photos && b.photos[0] ? h("img", { class: "thumb", src: pUrl(b.photos[0]), alt: "" }) : capa(b);
 const pUrl = p => p.id ? "/_blob/" + p.id : p.data;
 function passos(b) { return [(b.captar || []).length || (b.photos || []).length, (b.cats || []).length, b.frase, b.acao, b.fim || b.status === "lido"].filter(Boolean).length; }
-function newBook() {
+function addBook(title, abrir) {
   const id = uid36();
-  L()[id] = { id, title: "", author: "", theme: "", status: "lendo", photos: [], captar: [], cats: [], frase: "", ideias: "", acao: "", quando: "", feito: false, fim: "", nota: 0, created: today() };
-  saveBook(L()[id]); openId = id; render();
+  L()[id] = { id, title: title || "", author: "", theme: "", status: "lendo", photos: [], captar: [], cats: [], frase: "", ideias: "", acao: "", quando: "", feito: false, fim: "", nota: 0, created: today() };
+  saveBook(L()[id]); if (abrir) { openId = id; render(); } return id;
 }
+const newBook = () => addBook("", true);
 function livros() {
   const box = h("div", {}, h("div", { class: "row" }, h("h1", { class: "grow" }, "Biblioteca"), h("button", { class: "pri", onclick: newBook }, "+ Livro")));
   box.append(h("input", { type: "search", placeholder: "Buscar por título, autor, tema ou tag", value: q, oninput: e => { q = e.target.value; clearTimeout(box._t); box._t = setTimeout(() => { const l = $("#lista"); l && l.replaceWith(lista()); }, 150); }, style: "margin:8px 0" }));
@@ -607,7 +710,7 @@ function metricas() {
     h("div", { class: "chart" }, s.sem.map((v, i) => h("div", {}, h("i", { style: "height:" + Math.round(v / mx * 70) + "px" }), i === 7 ? "agora" : "-" + (7 - i) + "s"))),
     h("div", { class: "sub", style: "margin:0" }, "Esta semana: " + fmtMin(s.sem[7]) + (s.sem[6] ? " · semana passada: " + fmtMin(s.sem[6]) : ""))));
   box.append(h("h3", {}, "Livros"), h("div", { class: "grid2" },
-    tile(s.lidos.length, "livros lidos"), tile(s.nLendo, "lendo agora"), tile(s.lidosMes, "lidos neste mês"), tile(s.lidosAno, "lidos neste ano"),
+    tile(s.lidos.length, s.lidos.length === 1 ? "livro lido" : "livros lidos"), tile(s.nLendo, "lendo agora"), tile(s.lidosMes, s.lidosMes === 1 ? "lido neste mês" : "lidos neste mês"), tile(s.lidosAno, s.lidosAno === 1 ? "lido neste ano" : "lidos neste ano"),
     tile(s.nQuero, "na fila (quero ler)"), tile(s.notaMedia ? s.notaMedia.toFixed(1) + " ★" : "–", "nota média"),
     tile(s.diasTerminar != null ? plural(s.diasTerminar, "dia", "dias") : "–", "para terminar um livro"), tile(Math.round(s.mediaPassos * 10) / 10 + " de 5", "passos dos 5 Cs por livro")));
   box.append(h("h3", {}, "Aprendizado"), h("div", { class: "grid2" },
@@ -621,7 +724,7 @@ function metricas() {
   if (s.sem[7] > s.sem[6] && s.sem[6] > 0) ins.push("Esta semana você já leu mais do que na semana passada. 👏");
   else if (s.sem[6] > s.sem[7] && s.sem[7] > 0) ins.push("Na semana passada você leu mais. Ainda dá tempo de alcançar.");
   if (s.maisLido) ins.push("Livro em que você mais investiu tempo: " + (s.maisLido.title || "Sem título") + " (" + fmtMin(s.maisLido.min) + ").");
-  if (s.acoes && s.feitas < s.acoes) ins.push("Faltam " + (s.acoes - s.feitas) + " ação(ões) para colocar em prática. O aprendizado fixa quando vira ação.");
+  if (s.acoes && s.feitas < s.acoes) ins.push((s.acoes - s.feitas === 1 ? "Falta 1 ação" : "Faltam " + (s.acoes - s.feitas) + " ações") + " para colocar em prática. O aprendizado fixa quando vira ação.");
   const semCapt = s.books.filter(b => b.status === "lendo" && !(b.captar || []).length && !(b.photos || []).length).length;
   if (semCapt) ins.push(plural(semCapt, "livro em leitura ainda não tem", "livros em leitura ainda não têm") + " grifos nem fotos. Que tal captar uma ideia hoje?");
   if (s.best >= 3 && streak() < s.best) ins.push("Sua melhor sequência foi de " + s.best + " dias. Dá para bater!");
@@ -642,31 +745,89 @@ function bookStats(b) {
 
 /* ---------- cartão para o Instagram ---------- */
 const SHARE_MARCOS = [7, 10, 21, 30, 50, 100];
-function shareOpts() { const s = P().share || (P().share = {}); if (s.fmt === undefined) Object.assign(s, { fmt: "story", lendo: true, lidos: false, met: false, nome: true }); return s; }
+const TEMAS = { terra: { n: "Terracota", g: ["#F4924F", "#C2491D", "#6E260C"] }, noite: { n: "Noite", g: ["#4A48B0", "#25246B", "#0C0B26"] }, mar: { n: "Oceano", g: ["#35C2B2", "#1C7C8C", "#0E3B52"] } };
+function shareOpts() { const s = P().share || (P().share = {}); if (s.fmt === undefined) Object.assign(s, { fmt: "story", lendo: true, lidos: false, met: false, nome: true, frase: true }); if (!s.tema) s.tema = "terra"; if (!s.dest) s.dest = "auto"; if (s.fn === undefined) s.fn = 0; return s; }
 function fit(x, t, max) { if (x.measureText(t).width <= max) return t; while (t.length > 1 && x.measureText(t + "…").width > max) t = t.slice(0, -1); return t + "…"; }
+function rr(x, X, Y, w, hh, r) { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + hh, r); x.arcTo(X + w, Y + hh, X, Y + hh, r); x.arcTo(X, Y + hh, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); }
+const FRASES = [
+  "Ler um pouco por dia vale mais do que muito de vez em quando.", "Cada página lida é um passo para uma versão melhor de você.", "Quem lê vive mais de uma vida.",
+  "Não importa a velocidade. Importa não parar.", "Um capítulo por vez, um dia por vez.", "Pequenos hábitos constroem grandes histórias.",
+  "O que você lê hoje vira o que você sabe amanhã.", "Uma página por dia já muda um ano.", "Ler é conversar com as melhores mentes de todos os tempos.",
+  "Só começar já é metade do caminho.", "Livros não cobram pressa, só presença.", "Cada livro terminado é uma pequena vitória.",
+  "Ler hoje é um presente para o seu futuro.", "Leitura é treino para a mente.", "Você não precisa ser perfeito, só constante."
+];
+const FRASES_RECOMECO = [
+  "Recomeçar também é avançar.", "A sequência pode acabar. O hábito continua.", "Perder um dia não apaga o caminho que você já andou.",
+  "Hoje eu li. Amanhã eu leio de novo.", "Todo dia é um bom dia para abrir o livro outra vez.", "Cair da sequência não é fracassar, é só um novo começo.",
+  "O livro continua esperando por você. E você voltou.", "Constância não é nunca falhar, é sempre voltar."
+];
+function fraseDoDia(st) {
+  const lista = st >= 1 ? FRASES : FRASES_RECOMECO, d = new Date(), n = d.getFullYear() * 400 + d.getMonth() * 31 + d.getDate();
+  return lista[(n + (shareOpts().fn || 0)) % lista.length];
+}
+function wrap(x, texto, max, linhas) {
+  const ws = texto.split(" "), out = []; let cur = "";
+  ws.forEach(w => { const t = cur ? cur + " " + w : w; if (x.measureText(t).width > max && cur) { out.push(cur); cur = w; } else cur = t; });
+  if (cur) out.push(cur);
+  if (out.length > linhas) { out.length = linhas; out[linhas - 1] = fit(x, out[linhas - 1] + "…", max); }
+  return out;
+}
+function destaque(st) {
+  const s = shareOpts(), hoje = habit()[today()] || 0, total = Object.values(habit()).reduce((a, b) => a + b, 0);
+  let d = s.dest; if (d === "auto") d = st >= 1 ? "seq" : hoje > 0 ? "hoje" : "total";
+  if (d === "seq" && st < 1) d = hoje > 0 ? "hoje" : "total";
+  if (d === "hoje" && hoje <= 0) d = "total";
+  return d === "seq" ? { emoji: "🔥", num: String(st), lab: st === 1 ? "dia seguido lendo" : "dias seguidos lendo" }
+    : d === "hoje" ? { emoji: "📖", num: String(hoje), lab: hoje === 1 ? "minuto lendo hoje" : "minutos lendo hoje" }
+    : total ? { emoji: "📚", num: fmtMin(total), lab: "de leitura no total" } : { emoji: "📖", num: "Hoje", lab: "eu vou ler" };
+}
 function drawCard() {
-  const s = shareOpts(), st = streak(), p = PEOPLE[atual], W = 1080, H = s.fmt === "feed" ? 1350 : 1920, story = H > 1500;
+  const s = shareOpts(), st = streak(), p = PEOPLE[atual], W = 1080, H = s.fmt === "feed" ? 1350 : 1920, story = H > 1500, T = (TEMAS[s.tema] || TEMAS.terra).g;
   const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
-  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#d0703a"); g.addColorStop(1, "#7d3314"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  const g = x.createLinearGradient(0, 0, W * .3, H); g.addColorStop(0, T[0]); g.addColorStop(.55, T[1]); g.addColorStop(1, T[2]); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.fillStyle = "rgba(255,255,255,.07)"; [[W * .92, H * .1, 280], [W * .02, H * .5, 340], [W * .9, H * .86, 240]].forEach(([a, b, r]) => { x.beginPath(); x.arc(a, b, r, 0, 7); x.fill(); });
   const F = '-apple-system,"Segoe UI",Roboto,"Apple Color Emoji","Noto Color Emoji",sans-serif', books = Object.values(L());
-  x.textAlign = "center"; x.fillStyle = "#fff"; let y = story ? 200 : 130;
-  x.globalAlpha = .85; x.font = "bold 40px " + F; x.fillText("SEGUNDO CÉREBRO", W / 2, y); x.globalAlpha = 1;
-  y += story ? 230 : 190; x.font = "200px " + F; x.fillText("🔥", W / 2, y);
-  y += story ? 300 : 260; x.font = "bold " + (story ? 300 : 260) + "px " + F; x.fillText(String(st), W / 2, y);
-  y += 90; x.font = "bold 68px " + F; x.fillText(st === 1 ? "dia seguido lendo" : "dias seguidos lendo", W / 2, y);
-  if (s.nome) { y += 90; x.font = "52px " + F; x.fillText(p.e + " " + p.n, W / 2, y); }
+  x.textAlign = "center"; x.fillStyle = "#fff";
+  // faixa superior: marco ou marca
+  const marco = SHARE_MARCOS.includes(st), topY = story ? 150 : 90, label = marco ? "🏆 MARCO DE " + st + " DIAS" : "🧠 Segundo Cérebro";
+  x.font = "bold 40px " + F; const lw = x.measureText(label).width + 90;
+  rr(x, W / 2 - lw / 2, topY - 56, lw, 84, 42); x.fillStyle = marco ? "#FFD166" : "rgba(255,255,255,.2)"; x.fill();
+  x.fillStyle = marco ? "#5A3A00" : "#fff"; x.fillText(label, W / 2, topY);
+  x.fillStyle = "#fff";
+  const D = destaque(st);
+  x.font = (story ? 200 : 140) + "px " + F; x.fillText(D.emoji, W / 2, story ? 500 : 280);
+  let nf = story ? 360 : 240; x.font = "800 " + nf + "px " + F; while (x.measureText(D.num).width > W - 200 && nf > 80) { nf -= 10; x.font = "800 " + nf + "px " + F; }
+  x.fillText(D.num, W / 2, story ? 820 : 510);
+  let y = story ? 920 : 590;
+  x.font = "bold 74px " + F; x.fillText(D.lab, W / 2, y);
+  if (s.frase) {
+    x.font = "italic 600 " + (story ? 50 : 44) + "px " + F; x.globalAlpha = .96;
+    const ls = wrap(x, "“" + fraseDoDia(st) + "”", W - 200, story ? 3 : 2); y += story ? 85 : 70;
+    ls.forEach((l, i) => { x.fillText(l, W / 2, y); if (i < ls.length - 1) y += story ? 66 : 58; }); x.globalAlpha = 1;
+  }
+  if (s.nome) { y += story ? 85 : 68; x.font = "50px " + F; x.globalAlpha = .95; x.fillText(p.e + " " + p.n, W / 2, y); x.globalAlpha = 1; }
   if (s.met) {
     const t = Object.values(habit()).reduce((a, b) => a + b, 0), nl = books.filter(b => b.status === "lido").length;
-    y += 80; x.font = "44px " + F; x.fillText(fmtMin(t) + " de leitura · " + plural(nl, "livro lido", "livros lidos"), W / 2, y);
+    y += story ? 75 : 60; x.font = "42px " + F; x.globalAlpha = .92; x.fillText("⏱ " + fmtMin(t) + " de leitura · 📚 " + plural(nl, "livro", "livros"), W / 2, y); x.globalAlpha = 1;
   }
-  const maxItens = story ? 3 : 2;
-  const sec = (titulo, arr) => {
-    if (!arr.length) return; y += story ? 100 : 80; x.textAlign = "left"; x.font = "bold 44px " + F; x.fillText(titulo, 100, y); x.font = "42px " + F;
-    arr.slice(0, maxItens).forEach(b => { y += 62; x.fillText("• " + fit(x, b.title || "Sem título", W - 260), 120, y); }); x.textAlign = "center";
-  };
-  if (s.lendo) sec("📖 Lendo agora", books.filter(b => b.status === "lendo"));
-  if (s.lidos) sec("✅ Já li", books.filter(b => b.status === "lido").sort((a, b) => (b.fim || "").localeCompare(a.fim || "")));
-  x.globalAlpha = .75; x.font = "38px " + F; x.fillText("Aprenda lendo", W / 2, H - 80); x.globalAlpha = 1;
+  const secs = [];
+  if (s.lendo) { const l = books.filter(b => b.status === "lendo"); if (l.length) secs.push(["📖 Lendo agora", l]); }
+  if (s.lidos) { const l = books.filter(b => b.status === "lido").sort((a, b) => (b.fim || "").localeCompare(a.fim || "")); if (l.length) secs.push(["✅ Já li", l]); }
+  if (!story && s.frase && secs.length > 1) secs.length = 1;
+  const maxI = story ? (secs.length > 1 ? 1 : 3) : (secs.length > 1 ? 1 : 2);
+  if (secs.length) {
+    y += story ? 65 : 50;
+    const rows = secs.reduce((a, [, l]) => a + Math.min(l.length, maxI), 0), ph = 56 + secs.length * 74 + rows * 62;
+    rr(x, 90, y, W - 180, ph, 36); x.fillStyle = "rgba(0,0,0,.24)"; x.fill();
+    let ty = y + 46; x.textAlign = "left"; x.fillStyle = "#fff";
+    secs.forEach(([t, l]) => {
+      ty += 40; x.font = "bold 38px " + F; x.globalAlpha = .85; x.fillText(t, 130, ty); x.globalAlpha = 1; ty += 10; x.font = "44px " + F;
+      l.slice(0, maxI).forEach(b => { ty += 62; x.fillText("• " + fit(x, b.title || "Sem título", W - 340), 140, ty); }); ty += 24;
+    });
+    x.textAlign = "center";
+  }
+    x.fillStyle = "#fff"; x.font = "bold 44px " + F; x.fillText("Comece a sua ofensiva de leitura", W / 2, H - (story ? 140 : 100));
+  x.font = "36px " + F; x.globalAlpha = .8; x.fillText("🧠 Segundo Cérebro · Aprenda lendo", W / 2, H - (story ? 80 : 45)); x.globalAlpha = 1;
   return c;
 }
 async function cardBlob(cv) { return new Promise(r => cv.toBlob(r, "image/png")); }
@@ -677,7 +838,7 @@ async function downloadCard(cv) {
 async function shareCard(cv) {
   const blob = await cardBlob(cv), f = new File([blob], "ofensiva-de-leitura.png", { type: "image/png" });
   if (navigator.canShare && navigator.canShare({ files: [f] })) {
-    try { await navigator.share({ files: [f], title: "Segundo Cérebro · Aprenda lendo" }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+    try { await navigator.share({ files: [f], title: "Segundo Cérebro · Aprenda lendo", text: "Minha ofensiva de leitura 🔥 #SegundoCérebro" }); return; } catch (e) { if (e && e.name === "AbortError") return; }
   }
   await downloadCard(cv); toast("Imagem baixada. Agora é só postar no Instagram.");
 }
@@ -688,12 +849,26 @@ function cardModal() {
     h("input", { type: "checkbox", checked: s[key] ? true : false, onchange: e => { s[key] = e.target.checked; savePf(); redraw(); } }), label);
   const fm = h("select", { onchange: e => { s.fmt = e.target.value; savePf(); redraw(); } },
     h("option", { value: "story", selected: s.fmt === "story" ? true : false }, "Stories (vertical)"), h("option", { value: "feed", selected: s.fmt === "feed" ? true : false }, "Feed (4:5)"));
+  const dsel = h("select", { onchange: e => { s.dest = e.target.value; savePf(); redraw(); } },
+    [["auto", "Automático"], ["seq", "Dias seguidos"], ["hoje", "Minutos lidos hoje"], ["total", "Tempo total de leitura"]].map(([k, v]) => h("option", { value: k, selected: s.dest === k ? true : false }, v)));
+  const tm = h("div", {}); const drawTm = () => tm.replaceChildren(...Object.entries(TEMAS).map(([k, v]) => h("span", { class: "chip btn" + (s.tema === k ? " sel" : ""), onclick: () => { s.tema = k; savePf(); drawTm(); redraw(); } }, v.n))); drawTm();
   const m = h("div", { class: "modal", onclick: e => { if (e.target === m) m.remove(); } }, h("div", { class: "card", style: "max-width:420px;width:100%;margin:auto" },
     h("h3", {}, "Cartão para o Instagram"), prev,
-    chk("lendo", "Mostrar livros que estou lendo"), chk("lidos", "Mostrar livros que já li"), chk("met", "Mostrar métricas (tempo e livros lidos)"), chk("nome", "Mostrar meu nome"),
-    h("label", {}, "Formato"), fm,
+    chk("frase", "Mostrar frase motivadora"), h("button", { class: "ghost sm", style: "margin:4px 0 6px", onclick: () => { s.fn = (s.fn || 0) + 1; savePf(); redraw(); } }, "🔀 Outra frase"), chk("lendo", "Mostrar livros que estou lendo"), chk("lidos", "Mostrar livros que já li"), chk("met", "Mostrar métricas (tempo e livros lidos)"), chk("nome", "Mostrar meu nome"),
+    h("label", {}, "Destaque do cartão"), dsel, h("label", {}, "Cor"), tm, h("label", {}, "Formato"), fm,
     h("div", { class: "row", style: "margin-top:12px" }, h("button", { class: "pri grow", onclick: () => shareCard(cv) }, "Compartilhar"), h("button", { onclick: () => downloadCard(cv) }, "Baixar"), h("button", { class: "ghost", onclick: () => m.remove() }, "Fechar"))));
   document.body.append(m); redraw();
+}
+function celebrate() {
+  const st = streak(), marco = SHARE_MARCOS.includes(st), cores = ["#F4924F", "#FFD166", "#06D6A0", "#4D96FF", "#FF6B9A"];
+  const conf = Array.from({ length: 40 }, (_, i) => h("i", { class: "cf", style: `left:${Math.random() * 100}%;background:${cores[i % 5]};animation-delay:${(Math.random() * .6).toFixed(2)}s;animation-duration:${(1.8 + Math.random() * 1.4).toFixed(2)}s` }));
+  const m = h("div", { class: "modal celeb", onclick: e => { if (e.target === m) { m.remove(); conf.forEach(i => i.remove()); } } },
+    h("div", { class: "card cele" }, h("div", { class: "flame" }, "🔥"), h("div", { class: "bign" }, String(st)),
+      h("h2", { style: "margin:6px 0 4px" }, marco ? "Marco de " + st + " dias!" : st === 1 ? "Primeiro dia concluído!" : "dias seguidos!"),
+      h("p", { class: "sub", style: "margin:0 0 16px" }, marco ? "Que conquista! Mostre para os amigos." : st === 1 ? "O primeiro passo é o mais difícil. Volte amanhã!" : "Continue amanhã para manter a sequência."),
+      h("button", { class: "pri", style: "width:100%", onclick: () => { m.remove(); conf.forEach(i => i.remove()); cardModal(); } }, "📸 Compartilhar no Instagram"),
+      h("button", { class: "ghost", style: "width:100%;margin-top:8px", onclick: () => { m.remove(); conf.forEach(i => i.remove()); } }, "Agora não")));
+  document.body.append(m, ...conf); setTimeout(() => conf.forEach(i => i.remove()), 4000);
 }
 
 /* ---------- meta e backup ---------- */
@@ -701,7 +876,7 @@ function meta() {
   const p = P(), box = h("div", {}, h("h1", {}, "Minha meta"), helpBox("meta"));
   const bind = (key, label, tag, extra) => h("div", {}, h("label", {}, label), h(tag, { value: p[key] || "", ...extra, oninput: e => { p[key] = e.target.value; savePf(); } }));
   const mes = today().slice(0, 7), lidos = Object.values(L()).filter(b => (b.fim || "").startsWith(mes)).length, alvo = Number(p.metaMes) || 0;
-  const prog = h("div", { class: "card" }, h("h3", {}, "Este mês"), h("div", {}, lidos + (alvo ? " de " + alvo : "") + " livro(s) concluído(s)"), alvo ? h("div", { class: "bar", style: "margin-top:8px" }, h("i", { style: "width:" + Math.min(100, lidos / alvo * 100) + "%" })) : null);
+  const prog = h("div", { class: "card" }, h("h3", {}, "Este mês"), h("div", {}, lidos + (alvo ? " de " + alvo : "") + (lidos === 1 && !alvo ? " livro concluído" : " livros concluídos")), alvo ? h("div", { class: "bar", style: "margin-top:8px" }, h("i", { style: "width:" + Math.min(100, lidos / alvo * 100) + "%" })) : null);
   const temas = h("div", {}); const drawT = () => temas.replaceChildren(...(p.temas || []).map((t, i) => h("span", { class: "chip btn", onclick: () => { p.temas.splice(i, 1); savePf(); drawT(); } }, t + " ✕")));
   drawT();
   const tIn = h("input", { placeholder: "Novo tema (ex.: animais, história, liderança)" });
