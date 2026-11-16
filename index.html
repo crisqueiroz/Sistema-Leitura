@@ -142,6 +142,7 @@ const ICONS = {
   hoje: '<svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
   livros: '<svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
   metricas: '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
+  comunidade: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   meta: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>'
 };
 const today = () => new Date().toLocaleDateString("sv");
@@ -303,7 +304,7 @@ async function init() {
     sb.auth.onAuthStateChange((ev, sess) => {
       session = sess; authReady = true;
       if (ev === "PASSWORD_RECOVERY") recovery = true;
-      if (ev === "SIGNED_OUT") { started = false; loaded = false; mode = "local"; S = { pf: {} }; PEOPLE = {}; atual = null; recovery = false; try { localStorage.removeItem(LSA); } catch (e) {} }
+      if (ev === "SIGNED_OUT") { cm = cmNovo(); started = false; loaded = false; mode = "local"; S = { pf: {} }; PEOPLE = {}; atual = null; recovery = false; try { localStorage.removeItem(LSA); } catch (e) {} }
       if (sess && !recovery && !started) setTimeout(startCloud, 0);
       render();
     });
@@ -363,7 +364,7 @@ function helpBox(k) {
 }
 
 /* ---------- navegação ---------- */
-const TABS = [["hoje", "hoje", "Hoje"], ["livros", "livros", "Livros"], ["metricas", "metricas", "Métricas"], ["meta", "meta", "Meta"]];
+const TABS = [["hoje", "hoje", "Hoje"], ["livros", "livros", "Livros"], ["comunidade", "comunidade", "Comunidade"], ["metricas", "metricas", "Métricas"], ["meta", "meta", "Meta"]];
 let view = "hoje", openId = null, q = "", filtro = "todos";
 function route() {
   const hsh = location.hash.slice(1);
@@ -406,7 +407,7 @@ function topbar() {
 }
 function soft() { const a = document.activeElement; if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return; render(); }
 function render() {
-  const nav = $("#nav"); nav.replaceChildren(...TABS.map(([k, i, l]) => h("button", { class: view === k && !openId ? "on" : "", onclick: () => go(k), "aria-label": l }, svg(ICONS[i]), h("span", {}, l))));
+  const nav = $("#nav"); nav.replaceChildren(...TABS.filter(t => t[0] !== "comunidade" || comunidadeOn()).map(([k, i, l]) => h("button", { class: view === k && !openId ? "on" : "", onclick: () => go(k), "aria-label": l }, svg(ICONS[i]), h("span", {}, l))));
   const app = $("#app"); app.replaceChildren();
   const gate = gateView(); if (gate) { nav.replaceChildren(); app.append(gate); return; }
   if (!atual) { nav.replaceChildren(); app.append(escolher()); return; }
@@ -414,6 +415,7 @@ function render() {
   if (openId && L()[openId]) app.append(ficha(L()[openId]));
   else if (view === "hoje") app.append(hoje());
   else if (view === "livros") app.append(livros());
+  else if (view === "comunidade" && comunidadeOn()) app.append(comunidade());
   else if (view === "metricas") app.append(metricas());
   else app.append(meta());
 }
@@ -609,6 +611,7 @@ function ficha(b) {
     h("select", { onchange: e => { b.status = e.target.value; if (b.status === "lido" && !b.fim) b.fim = today(); touch(b); render(); } }, Object.entries(STATUS).map(([k, v]) => h("option", { value: k, selected: b.status === k ? true : false }, v))),
     h("div", { class: "bar", style: "margin-top:12px" }, updBar), h("div", { class: "sub", style: "margin:4px 0 0" }, "Passos concluídos pelos 5 Cs")));
   box.append(bookStats(b));
+  if (comunidadeOn()) box.append(h("button", { class: "pri", style: "width:100%;margin:0 0 12px", onclick: () => publicarDoLivro(b) }, "💬 Falar deste livro na comunidade"));
 
   // 1 Captar
   const photos = h("div", { class: "photos" }, (b.photos || []).map((p, i) => h("img", { src: pUrl(p), alt: "foto " + (i + 1), onclick: () => lightbox(b, i) })));
@@ -871,6 +874,183 @@ function celebrate() {
   document.body.append(m, ...conf); setTimeout(() => conf.forEach(i => i.remove()), 4000);
 }
 
+/* ---------- comunidade ---------- */
+const TIPOS = {
+  insight: ["💡", "Insight", "Qual ideia do livro mais marcou você?"],
+  pratica: ["🛠️", "Na prática", "Como você aplicou isso na vida real? O que mudou?"],
+  consenso: ["🤝", "Consenso", "Em que ponto você acha que a maioria dos leitores concorda?"],
+  duvida: ["❓", "Dúvida", "Qual dúvida você tem sobre o livro?"],
+  opiniao: ["💬", "Opinião", "O que você achou do livro?"]
+};
+const MOTIVOS = ["Spam ou propaganda", "Ofensivo ou desrespeitoso", "Conteúdo impróprio", "Informação pessoal", "Outro"];
+const cmNovo = () => ({ carregado: false, carregando: false, erro: "", eu: null, aba: "livros", busca: "", livros: [], livro: null, filtro: "todos", posts: [], aberto: {}, coments: {}, menu: null, rasc: { tipo: "insight", texto: "", nota: 0 }, novo: { titulo: "", autor: "" }, pend: null });
+let cm = cmNovo();
+const comunidadeOn = () => !!(CLOUD && session && mode === "cloud" && atual && PEOPLE[atual] && PEOPLE[atual].f === "adulto");
+const limpa = t => String(t || "").replace(/[%*,()\\_]/g, " ").trim();
+function ha(ts) {
+  const m = Math.round((Date.now() - new Date(ts)) / 60000); if (m < 1) return "agora"; if (m < 60) return m + " min";
+  const hr = Math.round(m / 60); if (hr < 24) return hr + " h"; const d = Math.round(hr / 24); return d < 30 ? d + " d" : new Date(ts).toLocaleDateString("pt-BR");
+}
+function cmErro(e) { const m = String((e && e.message) || ""); toast(/limite/.test(m) ? "Você está publicando rápido demais. Espere um pouco." : "Não consegui agora. Tente de novo."); }
+const contar = x => (x && x[0] && x[0].count) || 0;
+async function cmInit() {
+  cm.carregando = true;
+  try {
+    const { data, error } = await sb.from("perfis_publicos").select("apelido,emoji").eq("user_id", uid).maybeSingle();
+    if (error) cm.erro = "indisponivel";
+    else {
+      cm.eu = data;
+      if (data) { await cmCarregarLivros(); if (cm.pend) { const q = cm.pend; cm.pend = null; await cmAbrirPorTitulo(q.titulo, q.autor, q.texto); } }
+    }
+  } catch (e) { cm.erro = "indisponivel"; }
+  cm.carregando = false; cm.carregado = true; render();
+}
+async function cmCarregarLivros() {
+  let q = sb.from("livros_comunidade").select("id,titulo,autor,posts(count)").order("ultimo_post_em", { ascending: false }).limit(40);
+  const b = limpa(cm.busca); if (b) q = q.or(`titulo.ilike.%${b}%,autor.ilike.%${b}%`);
+  const { data, error } = await q; if (error) return cmErro(error);
+  cm.livros = data.map(l => ({ id: l.id, titulo: l.titulo, autor: l.autor, n: contar(l.posts) }));
+}
+async function cmPosts() {
+  let q = sb.from("posts").select("id,user_id,livro_id,tipo,nota,texto,created_at,perfis_publicos(apelido,emoji),livros_comunidade(titulo),curtidas(count),comentarios(count)").order("created_at", { ascending: false }).limit(40);
+  if (cm.livro) { q = q.eq("livro_id", cm.livro.id); if (cm.filtro !== "todos") q = q.eq("tipo", cm.filtro); }
+  const { data, error } = await q; if (error) return cmErro(error);
+  const ids = data.map(x => x.id), meus = new Set();
+  if (ids.length) { const r = await sb.from("curtidas").select("post_id").eq("user_id", uid).in("post_id", ids); (r.data || []).forEach(x => meus.add(x.post_id)); }
+  cm.posts = data.map(x => ({ id: x.id, uid: x.user_id, livro: x.livros_comunidade && x.livros_comunidade.titulo, tipo: x.tipo, nota: x.nota, texto: x.texto, em: x.created_at,
+    nome: x.perfis_publicos ? x.perfis_publicos.apelido : "alguém", emoji: x.perfis_publicos ? x.perfis_publicos.emoji : "📚", likes: contar(x.curtidas), coms: contar(x.comentarios), eu: meus.has(x.id) }));
+}
+async function cmAbrirPorTitulo(titulo, autor, texto) {
+  const t = limpa(titulo); if (!t) return toast("Digite o nome do livro.");
+  let { data } = await sb.from("livros_comunidade").select("id,titulo,autor").ilike("titulo", t).limit(5);
+  let l = (data || []).find(x => autor && x.autor.toLowerCase() === autor.trim().toLowerCase()) || (data || [])[0];
+  if (!l) {
+    const r = await sb.from("livros_comunidade").insert({ titulo: titulo.trim(), autor: (autor || "").trim() }).select("id,titulo,autor").single();
+    if (r.error) { const q = await sb.from("livros_comunidade").select("id,titulo,autor").ilike("titulo", t).limit(1); l = q.data && q.data[0]; if (!l) return cmErro(r.error); } else l = r.data;
+  }
+  cm.livro = { id: l.id, titulo: l.titulo, autor: l.autor, n: 0 }; cm.filtro = "todos"; cm.menu = null; cm.rasc = { tipo: "insight", texto: texto || "", nota: 0 };
+  await cmPosts(); go("comunidade");
+}
+function publicarDoLivro(b) {
+  if (!(b.title || "").trim()) return toast("Dê um título ao livro primeiro.");
+  const q = { titulo: b.title, autor: b.author || "", texto: b.frase || "" }; cm.aba = "livros";
+  if (cm.carregado && cm.eu) cmAbrirPorTitulo(q.titulo, q.autor, q.texto); else { cm.pend = q; go("comunidade"); }
+}
+async function cmPublicar() {
+  const r = cm.rasc, t = r.texto.trim(); if (!t) return toast("Escreva algo antes de publicar.");
+  const { error } = await sb.from("posts").insert({ livro_id: cm.livro.id, tipo: r.tipo, nota: r.nota || null, texto: t });
+  if (error) return cmErro(error);
+  cm.rasc.texto = ""; cm.rasc.nota = 0; await cmPosts(); render(); toast("Publicado!");
+}
+async function cmCurtir(x) {
+  const nova = !x.eu; x.eu = nova; x.likes += nova ? 1 : -1; render();
+  const { error } = nova ? await sb.from("curtidas").insert({ post_id: x.id }) : await sb.from("curtidas").delete().eq("post_id", x.id).eq("user_id", uid);
+  if (error) { x.eu = !nova; x.likes += nova ? -1 : 1; render(); cmErro(error); }
+}
+async function cmComents(id) {
+  const { data, error } = await sb.from("comentarios").select("id,user_id,texto,created_at,perfis_publicos(apelido,emoji)").eq("post_id", id).order("created_at"); if (error) return cmErro(error);
+  cm.coments[id] = data.map(c => ({ id: c.id, uid: c.user_id, texto: c.texto, em: c.created_at, nome: c.perfis_publicos ? c.perfis_publicos.apelido : "alguém", emoji: c.perfis_publicos ? c.perfis_publicos.emoji : "📚" }));
+}
+async function cmAbrirComents(x) { cm.aberto[x.id] = !cm.aberto[x.id]; if (cm.aberto[x.id]) await cmComents(x.id); render(); }
+async function cmComentar(x, txt) {
+  const t = txt.trim(); if (!t) return;
+  const { error } = await sb.from("comentarios").insert({ post_id: x.id, texto: t }); if (error) return cmErro(error);
+  x.coms++; await cmComents(x.id); render();
+}
+async function cmApagar(tabela, id, x) {
+  if (!confirm("Apagar de vez?")) return;
+  const { error } = await sb.from(tabela).delete().eq("id", id); if (error) return cmErro(error);
+  if (tabela === "posts") await cmPosts(); else { if (x) x.coms = Math.max(0, x.coms - 1); await cmComents(x.id); }
+  cm.menu = null; render(); toast("Apagado");
+}
+function cmDenunciar(tipo, alvo) {
+  const m = h("div", { class: "modal", onclick: e => { if (e.target === m) m.remove(); } }, h("div", { class: "card", style: "max-width:380px;width:100%;margin:auto" },
+    h("h3", {}, "Por que você quer denunciar?"), h("p", { class: "sub" }, "Se várias pessoas denunciarem, o conteúdo some até ser revisado."),
+    MOTIVOS.map(mo => h("button", { style: "width:100%;margin-bottom:8px;text-align:left", onclick: async () => {
+      m.remove(); const { error } = await sb.from("denuncias").insert({ tipo, alvo_id: alvo, motivo: mo });
+      if (error && error.code !== "23505") return cmErro(error);
+      cm.posts = cm.posts.filter(x => !(tipo === "post" && x.id === alvo)); if (tipo === "livro") { cm.livro = null; await cmCarregarLivros(); }
+      cm.menu = null; render(); toast("Obrigado. Vamos analisar.");
+    } }, mo)), h("button", { class: "ghost", style: "width:100%", onclick: () => m.remove() }, "Cancelar")));
+  document.body.append(m);
+}
+async function cmBloquear(uidAlvo, nome) {
+  if (!confirm("Bloquear " + nome + "? Vocês não verão mais as publicações um do outro.")) return;
+  const { error } = await sb.from("bloqueios").insert({ bloqueado_id: uidAlvo }); if (error && error.code !== "23505") return cmErro(error);
+  await cmCarregarLivros(); await cmPosts(); cm.menu = null; render(); toast("Bloqueado");
+}
+function estrelas(n) { return n ? "★".repeat(n) + "☆".repeat(5 - n) : ""; }
+function cmSetup() {
+  const ap = h("input", { placeholder: "Seu apelido (3 a 20 letras ou números)", maxlength: 20, autocomplete: "off" }), ok = h("input", { type: "checkbox" });
+  const go2 = async () => {
+    const a = ap.value.trim(); if (!/^[A-Za-z0-9_.À-ÿ]{3,20}$/.test(a)) return toast("Use de 3 a 20 letras, números, _ ou .");
+    if (!ok.checked) return toast("Confirme que você tem 18 anos ou mais e aceita as regras.");
+    const { error } = await sb.from("perfis_publicos").insert({ apelido: a, emoji: PEOPLE[atual].e });
+    if (error) return toast(error.code === "23505" ? "Esse apelido já está em uso." : "Não consegui agora. Tente de novo.");
+    cm.carregado = false; cm.carregando = false; render();
+  };
+  return h("div", { class: "card" }, h("h2", {}, "Escolha seu apelido"), h("p", { class: "sub" }, "É o nome que as outras pessoas vão ver. Não use seu nome completo nem dados pessoais."), ap,
+    h("label", { class: "check", style: "color:var(--ink);font-size:14px;margin-top:10px" }, ok, "Tenho 18 anos ou mais e aceito as regras: ser gentil, sem spam, ofensas, conteúdo impróprio ou dados pessoais. Conteúdo pode ser removido."),
+    h("button", { class: "pri", style: "width:100%;margin-top:10px", onclick: go2 }, "Entrar na comunidade"));
+}
+function cmMenu(tipo, id, uidAutor, nome, x) {
+  if (cm.menu !== id) return h("button", { class: "ghost sm", "aria-label": "Mais opções", onclick: () => { cm.menu = id; render(); } }, "⋯");
+  const mine = uidAutor === uid;
+  return h("span", { class: "row wrap", style: "gap:4px" }, mine ? h("button", { class: "danger sm", onclick: () => cmApagar(tipo === "post" ? "posts" : "comentarios", id, x) }, "Apagar")
+    : [h("button", { class: "sm", onclick: () => cmDenunciar(tipo, id) }, "Denunciar"), h("button", { class: "sm", onclick: () => cmBloquear(uidAutor, nome) }, "Bloquear")], h("button", { class: "ghost sm", onclick: () => { cm.menu = null; render(); } }, "✕"));
+}
+function cmPostCard(x, mostrarLivro) {
+  const t = TIPOS[x.tipo] || TIPOS.insight;
+  const card = h("div", { class: "card" },
+    h("div", { class: "row", style: "margin-bottom:6px" }, h("span", { style: "font-size:24px" }, x.emoji), h("div", { class: "grow" }, h("b", {}, x.nome), h("div", { class: "sub", style: "margin:0;font-size:12px" }, ha(x.em) + (mostrarLivro && x.livro ? " · " + x.livro : ""))), cmMenu("post", x.id, x.uid, x.nome, x)),
+    h("div", { style: "margin-bottom:6px" }, h("span", { class: "chip" }, t[0] + " " + t[1]), x.nota ? h("span", { style: "color:#e0a82e;font-size:14px" }, estrelas(x.nota)) : null),
+    h("div", { style: "white-space:pre-wrap;overflow-wrap:anywhere" }, x.texto),
+    h("div", { class: "row", style: "margin-top:10px" }, h("button", { class: "sm" + (x.eu ? " pri" : ""), onclick: () => cmCurtir(x) }, (x.eu ? "♥ " : "♡ ") + x.likes), h("button", { class: "sm", onclick: () => cmAbrirComents(x) }, "💬 " + x.coms)));
+  if (cm.aberto[x.id]) {
+    const lista = h("div", { style: "margin-top:10px" }), cs = cm.coments[x.id] || [];
+    cs.forEach(c => lista.append(h("div", { class: "hl" }, h("div", { class: "row" }, h("b", { class: "grow", style: "font-size:14px" }, c.emoji + " " + c.nome), h("small", {}, ha(c.em)), cmMenu("comentario", c.id, c.uid, c.nome, x)), h("div", { style: "white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px" }, c.texto))));
+    const inp = h("input", { placeholder: "Escreva um comentário", maxlength: 500 });
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") cmComentar(x, inp.value); });
+    lista.append(h("div", { class: "row", style: "margin-top:8px" }, inp, h("button", { class: "pri sm", onclick: () => cmComentar(x, inp.value) }, "Enviar")));
+    card.append(lista);
+  }
+  return card;
+}
+function cmLivroPage() {
+  const l = cm.livro, box = h("div", {});
+  box.append(h("div", { class: "row" }, h("button", { class: "ghost", onclick: () => { cm.livro = null; cm.menu = null; cmCarregarLivros().then(render); } }, "← Livros"), h("div", { class: "grow" }), h("button", { class: "ghost sm", onclick: () => cmDenunciar("livro", l.id) }, "Denunciar tema")));
+  box.append(h("div", { class: "card book", style: "cursor:default" }, capa({ title: l.titulo }), h("div", { class: "grow" }, h("h2", { style: "margin:0" }, l.titulo), h("div", { class: "sub", style: "margin:0" }, l.autor || "Autor não informado"))));
+  const r = cm.rasc, ta = h("textarea", { placeholder: TIPOS[r.tipo][2], maxlength: 1000, oninput: e => { r.texto = e.target.value; } }); ta.value = r.texto;
+  const chips = h("div", {}, Object.entries(TIPOS).map(([k, v]) => h("span", { class: "chip btn" + (r.tipo === k ? " sel" : ""), onclick: () => { r.tipo = k; render(); } }, v[0] + " " + v[1])));
+  const st = h("div", { class: "stars" }, [1, 2, 3, 4, 5].map(n => h("button", { class: n <= r.nota ? "on" : "", "aria-label": n + " estrelas", onclick: () => { r.nota = r.nota === n ? 0 : n; render(); } }, "★")));
+  box.append(h("div", { class: "card" }, h("h3", {}, "Compartilhe com os leitores"), chips, ta, h("div", { class: "row wrap", style: "margin-top:8px" }, h("div", { class: "grow" }, h("div", { class: "sub", style: "margin:0;font-size:12px" }, "Sua nota para o livro (opcional)"), st), h("button", { class: "pri", onclick: cmPublicar }, "Publicar"))));
+  const fl = h("div", {}, h("span", { class: "chip btn" + (cm.filtro === "todos" ? " sel" : ""), onclick: async () => { cm.filtro = "todos"; await cmPosts(); render(); } }, "Todos"),
+    Object.entries(TIPOS).map(([k, v]) => h("span", { class: "chip btn" + (cm.filtro === k ? " sel" : ""), onclick: async () => { cm.filtro = k; await cmPosts(); render(); } }, v[0] + " " + v[1])));
+  box.append(fl);
+  if (!cm.posts.length) box.append(h("div", { class: "empty" }, "Ainda não há publicações aqui. Seja a primeira pessoa a compartilhar!"));
+  cm.posts.forEach(x => box.append(cmPostCard(x, false)));
+  return box;
+}
+function comunidade() {
+  const box = h("div", {}, h("h1", {}, "Comunidade"));
+  if (!cm.carregado) { if (!cm.carregando) cmInit(); box.append(h("div", { class: "empty" }, "Carregando…")); return box; }
+  if (cm.erro) { box.append(h("div", { class: "card" }, h("b", {}, "A comunidade ainda não está ativada"), h("p", { class: "sub", style: "margin:6px 0 0" }, "Quem administra o app precisa ativá-la no banco de dados. Volte mais tarde."))); return box; }
+  if (!cm.eu) { box.append(h("p", { class: "sub" }, "Converse com outros leitores sobre cada livro: insights, como usou na prática e dúvidas."), cmSetup()); return box; }
+  if (cm.livro) return cmLivroPage();
+  box.append(h("p", { class: "sub" }, "Cada livro tem seu tema. Entre em um ou crie o seu."));
+  const busca = h("input", { type: "search", placeholder: "Buscar livro ou autor", value: cm.busca });
+  const buscar = async () => { cm.busca = busca.value; await cmCarregarLivros(); render(); };
+  busca.addEventListener("keydown", e => { if (e.key === "Enter") buscar(); });
+  box.append(h("div", { class: "row", style: "margin-bottom:12px" }, busca, h("button", { onclick: buscar }, "Buscar")));
+  const t = h("input", { placeholder: "Título do livro", maxlength: 120, value: cm.novo.titulo, oninput: e => { cm.novo.titulo = e.target.value; } }), a = h("input", { placeholder: "Autor (opcional)", maxlength: 120, value: cm.novo.autor, oninput: e => { cm.novo.autor = e.target.value; } });
+  box.append(h("details", { class: "card fold" }, h("summary", {}, "➕ Abrir tema de um livro"), t, h("div", { style: "height:8px" }), a, h("button", { class: "pri", style: "width:100%;margin-top:10px", onclick: () => cmAbrirPorTitulo(cm.novo.titulo, cm.novo.autor, "") }, "Abrir tema")));
+  if (!cm.livros.length) box.append(h("div", { class: "empty" }, cm.busca ? "Nenhum livro encontrado. Abra o tema dele acima." : "Ainda não há temas. Abra o primeiro!"));
+  cm.livros.forEach(l => box.append(h("div", { class: "card book", onclick: async () => { cm.livro = l; cm.filtro = "todos"; cm.rasc = { tipo: "insight", texto: "", nota: 0 }; await cmPosts(); render(); } }, capa({ title: l.titulo }),
+    h("div", { class: "grow" }, h("b", {}, l.titulo), h("div", { class: "sub", style: "margin:0" }, (l.autor ? l.autor + " · " : "") + plural(l.n, "publicação", "publicações"))))));
+  box.append(h("details", { class: "card fold" }, h("summary", {}, "📜 Regras da comunidade"), h("p", { class: "sub" }, "Seja gentil e respeite as pessoas. Não faça spam nem propaganda. Não publique ofensas, conteúdo impróprio ou dados pessoais. Você pode denunciar e bloquear. Conteúdo que quebrar as regras pode ser removido.")));
+  return box;
+}
+
 /* ---------- meta e backup ---------- */
 function meta() {
   const p = P(), box = h("div", {}, h("h1", {}, "Minha meta"), helpBox("meta"));
@@ -913,8 +1093,10 @@ async function excluirPerfil() {
   try { localStorage.removeItem(LSA); } catch (e) {} render(); toast("Perfil excluído");
 }
 async function apagarTudo() {
+  try { await sb.from("perfis_publicos").delete().eq("user_id", uid); } catch (e) {}
   const { error } = await sb.from("dados").delete().eq("user_id", uid);
   if (error) return toast("Não consegui apagar.");
+  cm = cmNovo();
   Object.keys(timers).forEach(k => { clearTimeout(timers[k]); delete timers[k]; });
   S = { pf: {} }; PEOPLE = {}; atual = null; render(); toast("Seus dados foram apagados");
 }
